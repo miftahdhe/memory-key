@@ -1,0 +1,14 @@
+{
+  "name": "memory-key",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "build": "echo \"No build step required\""
+  },
+  "dependencies": {
+    "express": "^4.21.2"
+  }
+}

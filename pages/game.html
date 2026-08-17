@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Memory Key - Game</title>
+    <link rel="stylesheet" href="../style.css">
+    <link rel="stylesheet" href="game.css">
+</head>
+<body>
+    <div class="screen active">
+        <div class="dashboard" style="max-width: 500px; position: relative;">
+            <button class="back-btn" onclick="window.history.back()">← Kembali</button>
+            <h2 class="dashboard-title" style="font-size: 2rem;">Game</h2>
+            <p class="dashboard-greeting">Cocokkan pasangan kartu-kartu ini!</p>
+            <div class="dashboard-divider"></div>
+            
+            <div class="game-stats">
+                <span>Langkah: <span id="moves" style="font-weight: 700; color: var(--accent);">0</span></span>
+                <button class="restart-btn" onclick="restartGame()">Ulangi</button>
+            </div>
+
+            <div class="memory-grid" id="memory-grid">
+                <!-- Cards will be generated here -->
+            </div>
+            
+            <div class="win-message" id="win-message">
+                <h3 style="font-family: 'Playfair Display', serif; font-style: italic;">Yey! Kamu Menang! 🎉</h3>
+                <p style="font-size: 0.9rem; margin-bottom: 0.5rem;">Kamu berhasil menyelesaikan dalam</p>
+                <p style="font-size: 1.5rem; font-weight: bold; color: var(--accent); margin-bottom: 1rem;"><span id="final-moves">0</span> Langkah</p>
+                <button class="restart-btn" onclick="restartGame()">Main Lagi</button>
+            </div>
+        </div>
+    </div>
+    
+    <script src="game.js"></script>
+</body>
+</html>
