@@ -22,6 +22,7 @@
             <script>
                 const grid = document.getElementById('galeri-grid');
                 const galeriImages = Array.from({ length: 45 }, (_, i) => `memory_${i + 1}.jpg`);
+                galeriImages.push('memory_47.jpg'); // Added specific image uploaded by user
                 
                 let htmlStr = '';
                 galeriImages.forEach((img, i) => {
