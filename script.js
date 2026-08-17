@@ -1,5 +1,13 @@
-const CORRECT_PIN = "0512";
+const CORRECT_PIN_HASH = "78c72f67941a420cd4e5ee9fdabcaeaba6d72f16160915085f9802220fd83799";
 let currentPin = "";
+
+async function hashString(str) {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(str);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
 
 function updateDots() {
     const dots = document.querySelectorAll('.dot');
@@ -31,10 +39,12 @@ function clearPin() {
     errorMsg.classList.remove('show');
 }
 
-function submitPin() {
+async function submitPin() {
     if (currentPin.length === 0) return;
     
-    if (currentPin === CORRECT_PIN) {
+    const hashedPin = await hashString(currentPin);
+    
+    if (hashedPin === CORRECT_PIN_HASH) {
         sessionStorage.setItem('isUnlocked', 'true');
         // Unlock success
         const lockScreen = document.getElementById('lock-screen');
