@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Memory Key - Tetris</title>
+    <link rel="stylesheet" href="../style.css">
+    <link rel="stylesheet" href="tetris.css">
+</head>
+<body>
+    <div id="tetris-overlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #fce4ec; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #880e4f; font-family: 'Playfair Display', serif; cursor: pointer; text-align: center; padding: 2rem;">
+        <p style="font-size: 1.2rem; margin-bottom: 2.5rem; line-height: 1.6; max-width: 400px;">Gua kadang liat lu main game ini mangkanya gua buatin buat lu yaa walaupun sederhana</p>
+        <p style="font-size: 1.5rem; font-weight: 700;">Ketuk</p>
+    </div>
+    <div class="screen active">
+        <div class="dashboard" style="max-width: 500px; position: relative;">
+            <button class="back-btn" onclick="window.history.back()">← Kembali</button>
+            <h2 class="dashboard-title" style="font-size: 2rem;">Tetris</h2>
+            <div class="dashboard-divider" style="margin-bottom: 1rem;"></div>
+            
+            <div class="game-header">
+                <span>Skor: <span id="score" style="font-weight: 700; color: var(--accent);">0</span></span>
+                <button class="restart-btn" onclick="tetrisStart()">Ulangi</button>
+            </div>
+
+            <div class="tetris-container" style="background: transparent; border: none; box-shadow: none; padding: 0;">
+                <canvas id="tetris" width="320" height="480"></canvas>
+            </div>
+            
+            <div class="game-over" id="game-over-message">
+                <h3 style="font-family: 'Playfair Display', serif; font-style: italic;">Game Over</h3>
+                <p style="font-size: 0.9rem; margin-bottom: 0.5rem;">Skor akhir kamu</p>
+                <p style="font-size: 1.5rem; font-weight: bold; color: var(--accent); margin-bottom: 1rem;"><span id="final-score">0</span></p>
+                <button class="restart-btn" onclick="tetrisStart()">Main Lagi</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Audio element for tetris music -->
+    <audio id="tetris-music" src="../assets/audio/game.mp3" loop></audio>
+
+    <script>
+        document.getElementById('tetris-overlay').addEventListener('click', function() {
+            const audio = document.getElementById('tetris-music');
+            if(audio) {
+                audio.volume = 0.5;
+                audio.play();
+            }
+            this.style.display = 'none'; // hide overlay
+            
+            // start the game logic if needed
+            if(typeof tetrisStart === 'function') tetrisStart();
+        });
+    </script>
+    <script src="tetris.js"></script>
+</body>
+</html>

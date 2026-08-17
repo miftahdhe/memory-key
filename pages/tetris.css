@@ -1,0 +1,75 @@
+.tetris-container {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 1.5rem;
+    touch-action: none; /* Prevent scrolling while dragging blocks */
+}
+
+#tetris {
+    background-color: #0f172a;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+}
+
+.game-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 1.2rem;
+    color: var(--text-primary);
+    font-weight: 500;
+    margin-bottom: 1rem;
+}
+
+.restart-btn {
+    background: var(--accent);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.2s;
+    box-shadow: 0 4px 10px rgba(216, 27, 96, 0.3);
+}
+
+.restart-btn:hover, .restart-btn:active {
+    background: #880e4f;
+    transform: scale(0.95);
+}
+
+.game-over {
+    display: none;
+    text-align: center;
+    background: rgba(255, 255, 255, 0.95);
+    padding: 2rem;
+    border-radius: 20px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    box-shadow: 0 10px 40px rgba(136, 14, 79, 0.2);
+    width: 85%;
+    max-width: 300px;
+    z-index: 10;
+    border: 1px solid rgba(216, 27, 96, 0.2);
+    backdrop-filter: blur(10px);
+}
+
+.game-over.show {
+    display: block;
+    animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.game-over h3 {
+    color: var(--accent);
+    margin-bottom: 0.8rem;
+    font-size: 1.5rem;
+}
+
+@keyframes popIn {
+    0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
+    100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+}
