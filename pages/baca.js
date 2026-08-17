@@ -48,6 +48,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (bookTitleEl) {
         if (puisiId === '2') {
             bookTitleEl.textContent = 'Sajak Untukmu';
+        } else if (puisiId === '3') {
+            bookTitleEl.textContent = 'Porsi';
+        } else if (puisiId === '4') {
+            bookTitleEl.textContent = 'Berubah Arah';
+        } else if (puisiId === '5') {
+            bookTitleEl.textContent = '10 malam';
+        } else if (puisiId === '6') {
+            bookTitleEl.textContent = '10 tahun';
         } else {
             bookTitleEl.textContent = 'Dalam Lima Waktuku';
         }
