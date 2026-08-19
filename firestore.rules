@@ -1,0 +1,26 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isValidVisit(data) {
+      return data.keys().hasAll(['device', 'userAgent', 'locationStatus']) &&
+             data.device is string &&
+             data.userAgent is string &&
+             data.locationStatus is string;
+    }
+
+    match /visits/{visitId} {
+      // Allow anyone to read (for the admin page)
+      allow read: if true;
+      
+      // Allow anyone to log a visit (anonymous logging)
+      allow create: if isValidVisit(request.resource.data);
+      
+      // Nobody needs to update or delete these logs
+      allow update, delete: if false;
+    }
+  }
+}

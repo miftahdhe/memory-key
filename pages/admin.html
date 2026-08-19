@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Admin Dashboard</title>
+    <link rel="stylesheet" href="../style.css">
+    <style>
+        .admin-container {
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+        .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #eaeaea;
+            padding-bottom: 15px;
+        }
+        .admin-title {
+            color: #333;
+            font-size: 24px;
+            margin: 0;
+        }
+        .back-btn {
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            text-decoration: none;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+        th, td {
+            text-align: left;
+            padding: 12px;
+            border-bottom: 1px solid #eaeaea;
+        }
+        th {
+            background-color: #f8f9fa;
+            color: #555;
+        }
+        td {
+            color: #333;
+            word-break: break-word;
+        }
+        tr:hover {
+            background-color: #f1f3f5;
+        }
+        .link-loc {
+            color: #3b82f6;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .link-loc:hover {
+            text-decoration: underline;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .status-granted { background: #d3f9d8; color: #2b8a3e; }
+        .status-denied { background: #ffe3e3; color: #c92a2a; }
+        .status-other { background: #f1f3f5; color: #495057; }
+    </style>
+</head>
+<body style="background: #f4f6f8; overflow: auto; align-items: flex-start; padding: 20px;">
+    
+    <div class="admin-container">
+        <div class="admin-header">
+            <h1 class="admin-title">Log Pengunjung</h1>
+            <a href="../index.html" class="back-btn">Kembali</a>
+        </div>
+
+        <table id="log-table">
+            <thead>
+                <tr>
+                    <th>Waktu</th>
+                    <th>Perangkat</th>
+                    <th>Browser / OS</th>
+                    <th>Status Lokasi</th>
+                    <th>Koordinat (Maps)</th>
+                </tr>
+            </thead>
+            <tbody id="log-body">
+                <tr><td colspan="5" style="text-align: center;">Memuat data...</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+        import { getFirestore, collection, query, orderBy, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+        
+        const firebaseConfig = {
+            projectId: "articulate-summer-58chg",
+            appId: "1:865644935448:web:c18c46e5457616c7a5c66d",
+            apiKey: "AIzaSyAwNe_iTf3a6cFmliiZaGrmLCnn-mBl-9c",
+            authDomain: "articulate-summer-58chg.firebaseapp.com",
+            storageBucket: "articulate-summer-58chg.firebasestorage.app",
+            messagingSenderId: "865644935448"
+        };
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app, "ai-studio-memorykey-6b6d5d2b-ef2b-407f-8d98-76d614ba8b9d");
+
+        async function fetchLogs() {
+            const tbody = document.getElementById('log-body');
+            try {
+                const q = query(collection(db, "visits"), orderBy("timestamp", "desc"));
+                const querySnapshot = await getDocs(q);
+                
+                tbody.innerHTML = "";
+                
+                if (querySnapshot.empty) {
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">Belum ada data pengunjung.</td></tr>';
+                    return;
+                }
+
+                querySnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    const tr = document.createElement('tr');
+                    
+                    // Waktu
+                    let timeStr = "-";
+                    if (data.timestamp) {
+                        const date = data.timestamp.toDate ? data.timestamp.toDate() : new Date(data.timestamp);
+                        timeStr = date.toLocaleString('id-ID');
+                    }
+
+                    // Status Lokasi
+                    let statusClass = 'status-other';
+                    if (data.locationStatus === 'granted') statusClass = 'status-granted';
+                    else if (data.locationStatus === 'denied') statusClass = 'status-denied';
+
+                    // Koordinat
+                    let coordHtml = "-";
+                    if (data.location && data.location.lat && data.location.lng) {
+                        coordHtml = `<a class="link-loc" href="https://www.google.com/maps?q=${data.location.lat},${data.location.lng}" target="_blank">Buka Maps</a>`;
+                    }
+
+                    tr.innerHTML = `
+                        <td>${timeStr}</td>
+                        <td><strong>${data.device || '-'}</strong></td>
+                        <td style="font-size: 11px; max-width: 200px;">${data.userAgent || '-'}</td>
+                        <td><span class="status-badge ${statusClass}">${data.locationStatus || '-'}</span></td>
+                        <td>${coordHtml}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (e) {
+                console.error("Gagal mengambil log:", e);
+                tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: red;">Gagal memuat data: ${e.message}</td></tr>`;
+            }
+        }
+
+        fetchLogs();
+    </script>
+</body>
+</html>

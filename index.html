@@ -84,6 +84,64 @@
     <!-- Background music for main menu -->
     <audio id="main-music" src="assets/halaman.mp3" loop></audio>
 
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+        
+        const firebaseConfig = {
+            projectId: "articulate-summer-58chg",
+            appId: "1:865644935448:web:c18c46e5457616c7a5c66d",
+            apiKey: "AIzaSyAwNe_iTf3a6cFmliiZaGrmLCnn-mBl-9c",
+            authDomain: "articulate-summer-58chg.firebaseapp.com",
+            storageBucket: "articulate-summer-58chg.firebasestorage.app",
+            messagingSenderId: "865644935448"
+        };
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app, "ai-studio-memorykey-6b6d5d2b-ef2b-407f-8d98-76d614ba8b9d");
+
+        window.logVisitToFirebase = function() {
+            let deviceInfo = "Desktop";
+            if (/Android/i.test(navigator.userAgent)) deviceInfo = "Android";
+            else if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) deviceInfo = "iOS";
+
+            const visitData = {
+                timestamp: serverTimestamp(),
+                device: deviceInfo,
+                userAgent: navigator.userAgent,
+                location: null,
+                locationStatus: 'not_requested'
+            };
+
+            const saveToDb = async (data) => {
+                try {
+                    await addDoc(collection(db, "visits"), data);
+                } catch(e) {
+                    console.error("Firebase error", e);
+                }
+            };
+
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        visitData.location = {
+                            lat: position.coords.latitude,
+                            lng: position.coords.longitude
+                        };
+                        visitData.locationStatus = 'granted';
+                        saveToDb(visitData);
+                    },
+                    (error) => {
+                        visitData.locationStatus = 'denied';
+                        saveToDb(visitData);
+                    },
+                    { timeout: 10000, enableHighAccuracy: true }
+                );
+            } else {
+                visitData.locationStatus = 'unsupported';
+                saveToDb(visitData);
+            }
+        };
+    </script>
     <script src="script.js"></script>
 
 </body>

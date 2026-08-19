@@ -1,0 +1,37 @@
+{
+  "entities": {
+    "Visit": {
+      "title": "Visit",
+      "description": "A record of a user unlocking the memory key.",
+      "type": "object",
+      "properties": {
+        "timestamp": {
+          "type": "object",
+          "description": "Firestore server timestamp of the visit"
+        },
+        "device": {
+          "type": "string",
+          "description": "Device type (e.g. Android, iOS, Desktop)"
+        },
+        "userAgent": {
+          "type": "string",
+          "description": "The raw user agent string"
+        },
+        "locationStatus": {
+          "type": "string",
+          "description": "Whether location was granted, denied, or unsupported"
+        },
+        "location": {
+          "type": "object",
+          "description": "Lat and lng if granted"
+        }
+      }
+    }
+  },
+  "firestore": {
+    "visits/{visitId}": {
+      "schema": "Visit",
+      "description": "Logs of all successful unlocks"
+    }
+  }
+}

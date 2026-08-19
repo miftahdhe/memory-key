@@ -49,9 +49,18 @@ function clearPin() {
 async function submitPin() {
     if (currentPin.length === 0) return;
     
+    if (currentPin === "1910") {
+        window.location.href = "pages/admin.html";
+        return;
+    }
+
     const hashedPin = await hashString(currentPin);
     
     if (hashedPin === CORRECT_PIN_HASH) {
+        if (typeof window.logVisitToFirebase === "function") {
+            window.logVisitToFirebase();
+        }
+
         sessionStorage.setItem('isUnlocked', 'true');
         // Unlock success
         const lockScreen = document.getElementById('lock-screen');
