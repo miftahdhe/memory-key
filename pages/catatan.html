@@ -5,59 +5,495 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Memory Key - Catatan</title>
     <link rel="stylesheet" href="../style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
+        /* Tabs Styling */
+        .tab-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            background: rgba(255, 255, 255, 0.4);
+            padding: 5px;
+            border-radius: 12px;
+        }
+        .tab-btn {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            background: transparent;
+            border-radius: 8px;
+            font-family: 'Inter', sans-serif;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .tab-btn.active {
+            background: var(--accent);
+            color: white;
+            box-shadow: 0 2px 8px rgba(216, 27, 96, 0.3);
+        }
+
+        /* Static Notes Styling */
         .notes-list {
             display: flex;
             flex-direction: column;
             gap: 1rem;
-            max-height: 65vh;
-            overflow-y: auto;
-            padding: 0.5rem;
+            padding-bottom: 20px;
         }
         .note-item {
             font-family: 'Caveat', cursive;
             font-size: 1.5rem;
             color: var(--text-primary);
-            background: rgba(255, 255, 255, 0.6);
-            padding: 1rem;
-            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.7);
+            padding: 1.2rem;
+            border-radius: 12px;
             box-shadow: 0 2px 8px rgba(136, 14, 79, 0.05);
-            border-left: 3px solid var(--accent);
+            border-left: 4px solid var(--accent);
             line-height: 1.3;
         }
-        .notes-list::-webkit-scrollbar {
-            width: 6px;
+
+        /* Private Space Styling */
+        .private-header {
+            text-align: center;
+            margin-bottom: 20px;
         }
-        .notes-list::-webkit-scrollbar-track {
-            background: rgba(255,255,255,0.2); 
-            border-radius: 4px;
+        .notes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 12px;
+            margin-top: 15px;
         }
-        .notes-list::-webkit-scrollbar-thumb {
-            background: var(--key-border); 
-            border-radius: 4px;
+        .note-card {
+            background: rgba(255, 255, 255, 0.85);
+            padding: 12px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(136, 14, 79, 0.08);
+            border-top: 3px solid var(--accent);
+            cursor: pointer;
+            transition: transform 0.2s;
+            height: 120px;
+            display: flex;
+            flex-direction: column;
         }
+        .note-card:active {
+            transform: scale(0.96);
+        }
+        .note-card-date {
+            font-size: 10px;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+            font-weight: 600;
+        }
+        .note-card-snippet {
+            font-size: 12px;
+            font-family: 'Inter', sans-serif;
+            color: #444;
+            line-height: 1.4;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 4; /* Limit to 4 lines */
+            -webkit-box-orient: vertical;
+        }
+
+        .write-btn {
+            width: 100%;
+            padding: 12px;
+            background: rgba(216, 27, 96, 0.1);
+            color: var(--accent);
+            border: 2px dashed var(--accent);
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 13px;
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            transition: all 0.2s;
+            margin-bottom: 10px;
+        }
+        .write-btn:hover {
+            background: rgba(216, 27, 96, 0.2);
+        }
+
+        /* Modal Styling */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(136, 14, 79, 0.4);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+        .modal-content {
+            background: white;
+            width: 100%;
+            max-width: 360px;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            animation: modalPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex;
+            flex-direction: column;
+            max-height: 80vh;
+        }
+        @keyframes modalPop {
+            0% { transform: scale(0.9); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 20px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 0 5px;
+        }
+        
+        textarea {
+            width: 100%;
+            height: 200px;
+            padding: 12px;
+            border-radius: 12px;
+            border: 1px solid rgba(136, 14, 79, 0.2);
+            background: #fdfafb;
+            font-family: 'Inter', sans-serif;
+            font-size: 13px;
+            resize: none;
+            outline: none;
+            margin-bottom: 15px;
+            box-sizing: border-box;
+            line-height: 1.5;
+        }
+        textarea:focus { border-color: var(--accent); }
     </style>
 </head>
 <body>
     <div id="catatan-overlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #fce4ec; z-index: 9999; display: flex; align-items: center; justify-content: center; color: #880e4f; font-family: 'Playfair Display', serif; font-size: 1.5rem; cursor: pointer;">
         Ketuk untuk membuka catatan
     </div>
+    
     <div class="screen active">
-        <div class="dashboard" style="max-width: 600px;">
+        <div class="dashboard" style="max-width: 600px; padding-top: 1rem;">
             <button class="back-btn" onclick="window.history.back()">← Kembali</button>
-            <h2 class="dashboard-title">Catatan</h2>
-            <div class="dashboard-divider"></div>
+            <h2 class="dashboard-title" style="margin-top: 0.5rem; margin-bottom: 1.5rem;">Catatan</h2>
             
-            <div class="content-placeholder notes-list" id="notes-list">
-                <!-- Notes will be loaded here dynamically -->
+            <div class="tab-container">
+                <button class="tab-btn active" id="btn-tab-catatan" onclick="switchTab('catatan')">Catatan</button>
+                <button class="tab-btn" id="btn-tab-privat" onclick="switchTab('privat')">Ruang Privat</button>
             </div>
+
+            <!-- Tab 1: Catatan -->
+            <div id="tab-catatan" style="flex: 1; overflow-y: auto;">
+                <div class="content-placeholder notes-list" id="notes-list">
+                    <!-- Static notes loaded here -->
+                </div>
+            </div>
+
+            <!-- Tab 2: Ruang Privat -->
+            <div id="tab-privat" style="display: none; flex: 1; overflow-y: auto;">
+                <div class="private-header">
+                    <h3 style="font-size: 16px; font-weight: 600; color: var(--text-primary);">Buku Harian <span id="user-display-name"></span> 🔒</h3>
+                    <p style="font-size: 11px; color: var(--text-secondary); margin-top: 4px;">Terenkripsi secara aman di Cloud.</p>
+                </div>
+
+                <!-- Setup Password -->
+                <div id="diary-setup" style="display: none; background: rgba(255,255,255,0.6); padding: 20px; border-radius: 12px;">
+                    <p style="font-size: 12px; margin-bottom: 12px; line-height: 1.4; color: var(--text-primary); text-align: center;">Buat password untuk ruanganmu sendiri. Catatanmu tidak akan bisa diakses orang lain.</p>
+                    <input type="password" id="new-diary-pass" placeholder="Buat Password Baru" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid rgba(136, 14, 79, 0.3); margin-bottom: 10px; box-sizing: border-box; font-family: 'Inter', sans-serif;">
+                    <button onclick="setupDiaryPassword()" style="width: 100%; padding: 12px; background: var(--accent); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 500;">Amankan Ruanganku</button>
+                </div>
+
+                <!-- Locked State -->
+                <div id="diary-locked" style="display: none; background: rgba(255,255,255,0.6); padding: 20px; border-radius: 12px;">
+                    <p style="font-size: 12px; margin-bottom: 12px; color: var(--text-primary); text-align: center;">Masukkan password ruang pribadi kamu.</p>
+                    <input type="password" id="check-diary-pass" placeholder="Password" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid rgba(136, 14, 79, 0.3); margin-bottom: 10px; box-sizing: border-box; font-family: 'Inter', sans-serif;">
+                    <p id="diary-error" style="color: red; font-size: 11px; display: none; margin-bottom: 10px; text-align: center;">Password salah.</p>
+                    <button onclick="unlockDiary()" style="width: 100%; padding: 12px; background: var(--accent); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 500;">Buka Kunci</button>
+                </div>
+
+                <!-- Unlocked State (Grid Layout) -->
+                <div id="diary-unlocked" style="display: none;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                        <p style="font-size: 11px; color: #2b8a3e; margin: 0; font-weight: 500;">Terverifikasi. Enkripsi Aktif.</p>
+                        <button onclick="openChangePassModal()" style="background: none; border: none; color: var(--text-secondary); font-size: 11px; text-decoration: underline; cursor: pointer;">Ganti Password</button>
+                    </div>
+                    <button class="write-btn" onclick="openWriteModal()">+ Tulis Catatan Baru</button>
+                    <div id="cloud-notes-display" class="notes-grid">
+                        <!-- Note cards will appear here -->
+                        <div style="grid-column: 1 / -1; text-align: center; font-size: 12px; padding: 20px; color: var(--text-secondary);">Memuat catatan...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for Writing -->
+    <div id="write-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 style="font-size: 15px; color: var(--text-primary); font-weight: 600;">Tulis Sesuatu...</h3>
+                <button class="modal-close" onclick="closeModal('write-modal')">×</button>
+            </div>
+            <textarea id="note-text" placeholder="Hari ini aku merasa..."></textarea>
+            <button id="save-btn" onclick="saveNoteCloud()" style="width: 100%; padding: 12px; background: var(--accent); color: white; border: none; border-radius: 10px; cursor: pointer; font-size: 13px; font-weight: 600;">Simpan</button>
+        </div>
+    </div>
+
+    <!-- Modal for Reading -->
+    <div id="read-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="read-date" style="font-size: 12px; color: var(--text-secondary); font-weight: 500;"></h3>
+                <button class="modal-close" onclick="closeModal('read-modal')">×</button>
+            </div>
+            <div id="read-text" style="font-size: 14px; font-family: 'Inter', sans-serif; color: #333; line-height: 1.6; overflow-y: auto; flex: 1;"></div>
+        </div>
+    </div>
+
+    <!-- Modal for Changing Password -->
+    <div id="change-pass-modal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 300px;">
+            <div class="modal-header">
+                <h3 style="font-size: 15px; color: var(--text-primary); font-weight: 600;">Ganti Password</h3>
+                <button class="modal-close" onclick="closeModal('change-pass-modal')">×</button>
+            </div>
+            <input type="password" id="change-pass-input" placeholder="Password Baru" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid rgba(136, 14, 79, 0.3); margin-bottom: 15px; box-sizing: border-box; font-family: 'Inter', sans-serif;">
+            <button id="submit-change-pass-btn" onclick="submitChangePassword()" style="width: 100%; padding: 12px; background: var(--accent); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 500;">Update Password</button>
         </div>
     </div>
 
     <!-- Audio element for catatan music -->
     <audio id="catatan-music" src="../assets/audio/catatan/catatan.mp3" loop></audio>
 
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, serverTimestamp, query, where, getDocs, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+        
+        const firebaseConfig = {
+            projectId: "articulate-summer-58chg",
+            appId: "1:865644935448:web:c18c46e5457616c7a5c66d",
+            apiKey: "AIzaSyAwNe_iTf3a6cFmliiZaGrmLCnn-mBl-9c",
+            authDomain: "articulate-summer-58chg.firebaseapp.com",
+            storageBucket: "articulate-summer-58chg.firebasestorage.app",
+            messagingSenderId: "865644935448"
+        };
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app, "ai-studio-memorykey-6b6d5d2b-ef2b-407f-8d98-76d614ba8b9d");
+
+        // UI Logic
+        const savedName = sessionStorage.getItem('enteredName') || "User";
+        document.getElementById('user-display-name').innerText = savedName.charAt(0).toUpperCase() + savedName.slice(1);
+        let actualPassword = null;
+        let credentialDocId = null;
+
+        window.switchTab = function(tab) {
+            document.getElementById('tab-catatan').style.display = tab === 'catatan' ? 'block' : 'none';
+            document.getElementById('tab-privat').style.display = tab === 'privat' ? 'flex' : 'none';
+            document.getElementById('tab-privat').style.flexDirection = 'column';
+            
+            document.getElementById('btn-tab-catatan').classList.toggle('active', tab === 'catatan');
+            document.getElementById('btn-tab-privat').classList.toggle('active', tab === 'privat');
+        }
+
+        window.openWriteModal = function() {
+            document.getElementById('write-modal').style.display = 'flex';
+        }
+        
+        window.closeModal = function(id) {
+            document.getElementById(id).style.display = 'none';
+        }
+
+        // Expose openReadModal globally
+        window.openReadModal = function(dateStr, encodedText) {
+            document.getElementById('read-date').innerText = dateStr;
+            document.getElementById('read-text').innerHTML = decodeURIComponent(encodedText);
+            document.getElementById('read-modal').style.display = 'flex';
+        }
+
+        // Firebase Logic
+        async function checkDiaryStatus() {
+            try {
+                const q = query(collection(db, "diary_credentials"), where("enteredName", "==", savedName));
+                const snapshot = await getDocs(q);
+                
+                if (!snapshot.empty) {
+                    const credDoc = snapshot.docs[0];
+                    actualPassword = credDoc.data().password;
+                    credentialDocId = credDoc.id;
+                    document.getElementById('diary-locked').style.display = 'block';
+                } else {
+                    document.getElementById('diary-setup').style.display = 'block';
+                }
+            } catch (e) {
+                console.error("Gagal memeriksa status:", e);
+                document.getElementById('diary-setup').style.display = 'block';
+            }
+        }
+
+        checkDiaryStatus();
+
+        window.setupDiaryPassword = async function() {
+            const passInput = document.getElementById('new-diary-pass').value.trim();
+            if (!passInput) return;
+            
+            try {
+                const docRef = await addDoc(collection(db, "diary_credentials"), {
+                    enteredName: savedName,
+                    password: passInput,
+                    timestamp: serverTimestamp()
+                });
+                actualPassword = passInput;
+                credentialDocId = docRef.id;
+                
+                document.getElementById('diary-setup').style.display = 'none';
+                document.getElementById('diary-unlocked').style.display = 'block';
+                fetchCloudNotes();
+            } catch (e) {
+                console.error("Error setting password:", e);
+            }
+        }
+
+        window.openChangePassModal = function() {
+            document.getElementById('change-pass-input').value = '';
+            document.getElementById('change-pass-modal').style.display = 'flex';
+        }
+
+        window.submitChangePassword = async function() {
+            const newPass = document.getElementById('change-pass-input').value.trim();
+            const btn = document.getElementById('submit-change-pass-btn');
+            
+            if (!newPass || !credentialDocId) return;
+            
+            btn.innerText = "Menyimpan...";
+            
+            try {
+                const credRef = doc(db, "diary_credentials", credentialDocId);
+                await updateDoc(credRef, {
+                    password: newPass,
+                    timestamp: serverTimestamp()
+                });
+                actualPassword = newPass;
+                btn.innerText = "Berhasil ✔️";
+                btn.style.background = "#2b8a3e";
+                
+                setTimeout(() => {
+                    closeModal('change-pass-modal');
+                    btn.innerText = "Update Password";
+                    btn.style.background = "var(--accent)";
+                }, 1000);
+            } catch (e) {
+                console.error("Gagal update password:", e);
+                btn.innerText = "Gagal!";
+                btn.style.background = "red";
+                setTimeout(() => {
+                    btn.innerText = "Update Password";
+                    btn.style.background = "var(--accent)";
+                }, 1500);
+            }
+        }
+
+        window.unlockDiary = function() {
+            const passInput = document.getElementById('check-diary-pass').value;
+            const errorMsg = document.getElementById('diary-error');
+            
+            if (passInput === actualPassword) {
+                errorMsg.style.display = 'none';
+                document.getElementById('diary-locked').style.display = 'none';
+                document.getElementById('diary-unlocked').style.display = 'block';
+                fetchCloudNotes();
+            } else {
+                errorMsg.style.display = 'block';
+            }
+        }
+
+        async function fetchCloudNotes() {
+            const display = document.getElementById('cloud-notes-display');
+            display.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; font-size: 11px; padding: 20px;">Mengambil data...</div>';
+            
+            try {
+                const q = query(collection(db, "secret_notes"), where("enteredName", "==", savedName));
+                const snapshot = await getDocs(q);
+                
+                let notes = [];
+                snapshot.forEach(doc => notes.push(doc.data()));
+                notes.sort((a, b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0)); // Newest first
+                
+                display.innerHTML = '';
+                
+                if (notes.length === 0) {
+                    display.innerHTML = '<div style="grid-column: 1 / -1; font-size: 12px; text-align: center; color: #888; padding: 20px;">Belum ada catatan. Mulai tulis kisahmu.</div>';
+                }
+
+                notes.forEach(note => {
+                    const card = document.createElement('div');
+                    card.className = 'note-card';
+                    
+                    let timeStr = "-";
+                    if (note.timestamp) {
+                        const date = note.timestamp.toDate ? note.timestamp.toDate() : new Date(note.timestamp);
+                        timeStr = date.toLocaleString('id-ID', {day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute:'2-digit'});
+                    }
+                    
+                    const rawText = note.text || "";
+                    const safeHtmlText = rawText.replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, "<br>");
+                    const encodedText = encodeURIComponent(safeHtmlText);
+                    
+                    card.setAttribute('onclick', `openReadModal('${timeStr}', '${encodedText}')`);
+                    
+                    card.innerHTML = `
+                        <div class="note-card-date">${timeStr}</div>
+                        <div class="note-card-snippet">${safeHtmlText}</div>
+                    `;
+                    display.appendChild(card);
+                });
+            } catch (e) {
+                console.error("Gagal mengambil catatan:", e);
+                display.innerHTML = '<div style="grid-column: 1 / -1; color: red; font-size: 11px; text-align: center;">Gagal memuat catatan.</div>';
+            }
+        }
+
+        window.saveNoteCloud = async function() {
+            const textArea = document.getElementById('note-text');
+            const text = textArea.value.trim();
+            const btn = document.getElementById('save-btn');
+            
+            if (!text) return;
+            
+            btn.innerText = "Tersimpan ✔️";
+            btn.style.background = "#2b8a3e";
+            
+            try {
+                await addDoc(collection(db, "secret_notes"), {
+                    text: text,
+                    enteredName: savedName,
+                    timestamp: serverTimestamp()
+                });
+                
+                setTimeout(() => {
+                    btn.innerText = "Simpan";
+                    btn.style.background = "var(--accent)";
+                    textArea.value = "";
+                    closeModal('write-modal');
+                    fetchCloudNotes();
+                }, 1000);
+            } catch(e) {
+                console.error(e);
+            }
+        }
+    </script>
+
+    <!-- Load static notes -->
     <script>
         document.addEventListener('DOMContentLoaded', async () => {
             const notesList = document.getElementById('notes-list');
@@ -83,7 +519,7 @@
                 audio.volume = 0.5;
                 audio.play();
             }
-            this.style.display = 'none'; // hide overlay
+            this.style.display = 'none';
         });
     </script>
 </body>

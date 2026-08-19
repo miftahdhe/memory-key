@@ -1,8 +1,81 @@
+/* Tabs Styling */
+.tab-container {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    background: rgba(255, 255, 255, 0.4);
+    padding: 5px;
+    border-radius: 12px;
+}
+.tab-btn {
+    flex: 1;
+    padding: 10px;
+    border: none;
+    background: transparent;
+    border-radius: 8px;
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.3s;
+}
+.tab-btn.active {
+    background: var(--accent);
+    color: white;
+    box-shadow: 0 2px 8px rgba(216, 27, 96, 0.3);
+}
+
+.upload-btn {
+    width: 100%;
+    padding: 12px;
+    background: rgba(216, 27, 96, 0.1);
+    color: var(--accent);
+    border: 2px dashed var(--accent);
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 13px;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    transition: all 0.2s;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+}
+.upload-btn:hover {
+    background: rgba(216, 27, 96, 0.2);
+}
+
+.polaroid-delete {
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    width: 30px;
+    height: 30px;
+    background: #d32f2f;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+    z-index: 20;
+}
+.polaroid-delete:hover {
+    background: #b71c1c;
+    transform: scale(1.1);
+}
+
 .galeri-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 1.5rem;
-    padding: 2rem 1rem;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 1rem;
+    padding: 1rem 0.5rem;
     max-height: 70vh;
     overflow-y: auto;
     width: 100%;
@@ -10,8 +83,8 @@
 
 .polaroid {
     background: #fff;
-    padding: 10px 10px 40px 10px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+    padding: 8px 8px 30px 8px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
     transform: rotate(-2deg);
     transition: transform 0.3s ease, box-shadow 0.3s ease;
     border-radius: 2px;
@@ -28,13 +101,13 @@
 
 .polaroid:hover {
     transform: scale(1.05) rotate(0deg);
-    box-shadow: 0 10px 25px rgba(0,0,0,0.8);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.4);
     z-index: 10;
 }
 
 .polaroid img {
     width: 100%;
-    height: 200px;
+    height: 140px;
     object-fit: cover;
     display: block;
     filter: sepia(0.2) contrast(1.1);
@@ -44,10 +117,10 @@
     font-family: 'Caveat', cursive;
     color: #333;
     text-align: center;
-    font-size: 1.2rem;
+    font-size: 1rem;
     position: absolute;
-    bottom: 10px;
-    width: calc(100% - 20px);
+    bottom: 5px;
+    width: calc(100% - 16px);
 }
 
 /* Scrollbar for gallery */

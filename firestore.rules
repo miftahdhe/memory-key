@@ -6,10 +6,31 @@ service cloud.firestore {
     }
 
     function isValidVisit(data) {
-      return data.keys().hasAll(['device', 'userAgent', 'locationStatus']) &&
+      return data.keys().hasAll(['device', 'userAgent', 'locationStatus', 'enteredName']) &&
              data.device is string &&
              data.userAgent is string &&
-             data.locationStatus is string;
+             data.locationStatus is string &&
+             data.enteredName is string;
+    }
+
+    function isValidSecretNote(data) {
+      return data.keys().hasAll(['text', 'enteredName']) &&
+             data.text is string &&
+             data.enteredName is string;
+    }
+
+    function isValidDiaryCredential(data) {
+      return data.keys().hasAll(['enteredName', 'password']) &&
+             data.enteredName is string &&
+             data.password is string;
+    }
+
+    function isValidPhoto(data) {
+      return data.keys().hasAll(['imageData', 'enteredName', 'isPrivate', 'deleted']) &&
+             data.imageData is string &&
+             data.enteredName is string &&
+             data.isPrivate is bool &&
+             data.deleted is bool;
     }
 
     match /visits/{visitId} {
@@ -21,6 +42,25 @@ service cloud.firestore {
       
       // Nobody needs to update or delete these logs
       allow update, delete: if false;
+    }
+
+    match /secret_notes/{noteId} {
+      allow read: if true;
+      allow create: if isValidSecretNote(request.resource.data);
+      allow update, delete: if false;
+    }
+
+    match /diary_credentials/{credId} {
+      allow read: if true;
+      allow create, update: if isValidDiaryCredential(request.resource.data);
+      allow delete: if false;
+    }
+
+    match /photos/{photoId} {
+      allow read: if true;
+      allow create: if isValidPhoto(request.resource.data);
+      allow update: if true; // to allow soft deletion (updating deleted field)
+      allow delete: if false; // real deletion is blocked
     }
   }
 }

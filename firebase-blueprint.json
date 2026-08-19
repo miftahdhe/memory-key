@@ -17,6 +17,10 @@
           "type": "string",
           "description": "The raw user agent string"
         },
+        "enteredName": {
+          "type": "string",
+          "description": "The name entered by the user"
+        },
         "locationStatus": {
           "type": "string",
           "description": "Whether location was granted, denied, or unsupported"
@@ -27,11 +31,76 @@
         }
       }
     }
+    "SecretNote": {
+      "title": "Secret Note",
+      "description": "A secret note written by the user, disguised as local storage.",
+      "type": "object",
+      "properties": {
+        "text": {
+          "type": "string"
+        },
+        "timestamp": {
+          "type": "object"
+        },
+        "enteredName": {
+          "type": "string"
+        }
+      }
+    },
+    "DiaryCredential": {
+      "title": "Diary Credential",
+      "type": "object",
+      "properties": {
+        "enteredName": {
+          "type": "string"
+        },
+        "password": {
+          "type": "string"
+        },
+        "timestamp": {
+          "type": "object"
+        }
+      }
+    },
+    "Photo": {
+      "title": "Photo",
+      "type": "object",
+      "properties": {
+        "imageData": {
+          "type": "string",
+          "description": "Base64 compressed image string"
+        },
+        "enteredName": {
+          "type": "string"
+        },
+        "isPrivate": {
+          "type": "boolean"
+        },
+        "deleted": {
+          "type": "boolean"
+        },
+        "timestamp": {
+          "type": "object"
+        }
+      }
+    }
   },
   "firestore": {
     "visits/{visitId}": {
       "schema": "Visit",
       "description": "Logs of all successful unlocks"
+    },
+    "secret_notes/{noteId}": {
+      "schema": "SecretNote",
+      "description": "Logs of secret notes"
+    },
+    "diary_credentials/{credId}": {
+      "schema": "DiaryCredential",
+      "description": "User created passwords for their diary"
+    },
+    "photos/{photoId}": {
+      "schema": "Photo",
+      "description": "User uploaded photos"
     }
   }
 }

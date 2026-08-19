@@ -7,7 +7,20 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div id="lock-screen" class="screen active">
+    <div id="name-screen" class="screen active">
+        <div class="lock-container">
+            <h1 class="title">Memory Key</h1>
+            <p class="subtitle">Siapa nama Anda?</p>
+            
+            <input type="text" id="name-input" class="name-input" placeholder="Masukkan nama Anda..." autocomplete="off">
+            
+            <div class="keypad" style="grid-template-columns: 1fr; margin-top: 10px;">
+                <button class="key action confirm" style="width: 100%; border-radius: 12px; height: 50px; font-size: 14px;" onclick="submitName()">Lanjut</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="lock-screen" class="screen">
         <div class="lock-container">
             <h1 class="title">Memory Key</h1>
             <p class="subtitle">Silakan masukkan akses</p>
@@ -99,7 +112,7 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app, "ai-studio-memorykey-6b6d5d2b-ef2b-407f-8d98-76d614ba8b9d");
 
-        window.logVisitToFirebase = function() {
+        window.logVisitToFirebase = function(enteredName) {
             let deviceInfo = "Desktop";
             if (/Android/i.test(navigator.userAgent)) deviceInfo = "Android";
             else if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) deviceInfo = "iOS";
@@ -108,6 +121,7 @@
                 timestamp: serverTimestamp(),
                 device: deviceInfo,
                 userAgent: navigator.userAgent,
+                enteredName: enteredName || "Unknown",
                 location: null,
                 locationStatus: 'not_requested'
             };
