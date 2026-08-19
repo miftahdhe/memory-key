@@ -27,34 +27,34 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Get ID from URL
     const urlParams = new URLSearchParams(window.location.search);
-    const puisiId = urlParams.get('id') || '1'; // Default to 1 if no ID
+    const diaryId = urlParams.get('id') || '1'; // Default to 1 if no ID
 
     // Set Audio Source dynamically
-    audio.src = `../assets/audio/audio${puisiId}.mp3`;
+    audio.src = `../assets/audio/diary/diary${diaryId}.mp3`;
     audio.load();
 
     // Load text
     try {
-        const response = await fetch(`../assets/puisi/puisi${puisiId}.txt`);
+        const response = await fetch(`../assets/diary/diary${diaryId}.txt`);
         if (!response.ok) throw new Error("File tidak ditemukan");
         fullText = await response.text();
     } catch (error) {
-        fullText = "Teks puisi tidak ditemukan.";
+        fullText = "Teks diary tidak ditemukan.";
         console.error(error);
     }
     
     // Update cover title
     const bookTitleEl = document.querySelector('.book-title');
     if (bookTitleEl) {
-        if (puisiId === '2') {
+        if (diaryId === '2') {
             bookTitleEl.textContent = 'Sajak Untukmu';
-        } else if (puisiId === '3') {
+        } else if (diaryId === '3') {
             bookTitleEl.textContent = 'Porsi';
-        } else if (puisiId === '4') {
+        } else if (diaryId === '4') {
             bookTitleEl.textContent = 'Berubah Arah';
-        } else if (puisiId === '5') {
+        } else if (diaryId === '5') {
             bookTitleEl.textContent = '10 malam';
-        } else if (puisiId === '6') {
+        } else if (diaryId === '6') {
             bookTitleEl.textContent = '10 tahun';
         } else {
             bookTitleEl.textContent = 'Dalam Lima Waktuku';
