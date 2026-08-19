@@ -64,6 +64,13 @@ async function submitPin() {
                     welcomeScreen.classList.remove('active');
                     welcomeScreen.classList.remove('fade-out');
                     document.getElementById('main-screen').classList.add('active');
+                    
+                    // Play background music
+                    const bgMusic = document.getElementById('main-music');
+                    if(bgMusic) {
+                        bgMusic.volume = 0.4;
+                        bgMusic.play().catch(e => console.log('Audio play failed:', e));
+                    }
                 }, 800);
             }, 2000);
         }, 800);
@@ -98,5 +105,18 @@ document.addEventListener('DOMContentLoaded', () => {
         
         const mainScreen = document.getElementById('main-screen');
         if(mainScreen) mainScreen.classList.add('active');
+        
+        // Play music if already unlocked
+        const bgMusic = document.getElementById('main-music');
+        if(bgMusic) {
+            bgMusic.volume = 0.4;
+            // Interaction might be needed, but we attempt anyway
+            bgMusic.play().catch(e => {
+                // If autoplay blocked, add one-time click listener to body
+                document.body.addEventListener('click', () => {
+                    bgMusic.play();
+                }, { once: true });
+            });
+        }
     }
 });
