@@ -56,6 +56,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             bookTitleEl.textContent = '10 malam';
         } else if (diaryId === '6') {
             bookTitleEl.textContent = '10 tahun';
+        } else if (diaryId === '7') {
+            bookTitleEl.textContent = 'Hening';
         } else {
             bookTitleEl.textContent = 'Dalam Lima Waktuku';
         }

@@ -26,6 +26,13 @@ function pressKey(num) {
     const lockContainer = document.querySelector('.lock-container');
     lockContainer.classList.remove('shake');
 
+    // Trigger music on first interaction
+    const bgMusic = document.getElementById('main-music');
+    if (bgMusic && bgMusic.paused) {
+        bgMusic.volume = 0.4;
+        bgMusic.play().catch(e => console.log('Audio play failed:', e));
+    }
+
     if (currentPin.length < 4) {
         currentPin += num;
         updateDots();
