@@ -170,6 +170,8 @@
     object-fit: contain;
     user-select: none;
     -webkit-user-drag: none;
+    will-change: transform;
+    transform-origin: center center;
 }
 
 .lightbox-caption {

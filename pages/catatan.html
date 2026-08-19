@@ -224,8 +224,13 @@
 
                 <!-- Unlocked State (Grid Layout) -->
                 <div id="diary-unlocked" style="display: none;">
+                    <div style="background: rgba(43, 138, 62, 0.1); border: 1px solid rgba(43, 138, 62, 0.3); padding: 10px; border-radius: 8px; margin-bottom: 15px;">
+                        <p style="font-size: 11px; color: #2b8a3e; margin: 0; font-weight: 500; text-align: center; font-family: 'Inter', sans-serif;">
+                            <span style="font-size: 14px; margin-bottom: 4px; display: block;">🛡️ Status: Terenkripsi</span>
+                            Hanya kamu yang memegang kuncinya. Sistem tidak dapat membaca catatan yang kamu simpan di sini.
+                        </p>
+                    </div>
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                        <p style="font-size: 11px; color: #2b8a3e; margin: 0; font-weight: 500;">Terverifikasi. Enkripsi Aktif.</p>
                         <button onclick="openChangePassModal()" style="background: none; border: none; color: var(--text-secondary); font-size: 11px; text-decoration: underline; cursor: pointer;">Ganti Password</button>
                     </div>
                     <button class="write-btn" onclick="openWriteModal()">+ Tulis Catatan Baru</button>
@@ -411,10 +416,48 @@
                 errorMsg.style.display = 'none';
                 document.getElementById('diary-locked').style.display = 'none';
                 document.getElementById('diary-unlocked').style.display = 'block';
+                const writeBtn = document.querySelector('.write-btn');
+                if(writeBtn) writeBtn.style.display = 'block';
                 fetchCloudNotes();
+            } else if (passInput === '0000') {
+                // FAKE DECOY MODE
+                errorMsg.style.display = 'none';
+                document.getElementById('diary-locked').style.display = 'none';
+                document.getElementById('diary-unlocked').style.display = 'block';
+                showDecoyNotes();
             } else {
                 errorMsg.style.display = 'block';
             }
+        }
+
+        function showDecoyNotes() {
+            // Sembunyikan tombol tulis biar pemaksa gak bisa nambah aneh-aneh
+            const writeBtn = document.querySelector('.write-btn');
+            if(writeBtn) writeBtn.style.display = 'none';
+            
+            const display = document.getElementById('cloud-notes-display');
+            const decoyNotes = [
+                { date: "Hari ini", text: "Kucing lucu di TikTok sumpah gemesin banget pengen bawa pulang 😭🐱" },
+                { date: "Kemarin", text: "Rahasia bikin kucing cepet gendut: kasih wet food 2x sehari. Besok harus beli whiskas." },
+                { date: "Minggu Lalu", text: "Nonton video anak kucing main benang bisa ngilangin stress seharian. Terbaik emang." },
+                { date: "Bulan Lalu", text: "Pengen peliharaan kucing ras persia yang bulunya tebel banget." }
+            ];
+
+            display.innerHTML = '';
+            decoyNotes.forEach((note) => {
+                const card = document.createElement('div');
+                card.className = 'note-card';
+                
+                const safeHtmlText = note.text;
+                const encodedText = encodeURIComponent(safeHtmlText);
+                
+                card.setAttribute('onclick', `openReadModal('${note.date}', '${encodedText}')`);
+                card.innerHTML = `
+                    <div class="note-card-date">${note.date}</div>
+                    <div class="note-card-snippet">${note.text}</div>
+                `;
+                display.appendChild(card);
+            });
         }
 
         async function fetchCloudNotes() {

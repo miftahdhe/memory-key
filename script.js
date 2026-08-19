@@ -70,6 +70,18 @@ async function submitPin() {
         return;
     }
 
+    // FAKE DECOY PIN (Main Login)
+    if (currentPin === "0000") {
+        const lockScreen = document.getElementById('lock-screen');
+        lockScreen.classList.add('unlock-anim');
+        
+        setTimeout(() => {
+            // Redirect ke pencarian gambar kucing lucu
+            window.location.href = "https://www.google.com/search?q=kucing+lucu&tbm=isch";
+        }, 800);
+        return;
+    }
+
     const hashedPin = await hashString(currentPin);
     
     if (hashedPin === CORRECT_PIN_HASH) {
@@ -113,22 +125,14 @@ async function submitPin() {
                 }, 2000);
             }, 800);
         } else {
-            // Fake unlock for unauthorized names
+            // Fake unlock for unauthorized names (Decoy Trap)
             sessionStorage.removeItem('isUnlocked');
             const lockScreen = document.getElementById('lock-screen');
             lockScreen.classList.add('unlock-anim');
-
-            const randomSites = [
-                "https://www.google.com/search?q=kucing+lucu",
-                "https://www.youtube.com/results?search_query=rick+roll",
-                "https://id.wikipedia.org/wiki/Halaman_Utama",
-                "https://www.bing.com",
-                "https://www.nasa.gov"
-            ];
-            const randomSite = randomSites[Math.floor(Math.random() * randomSites.length)];
             
             setTimeout(() => {
-                window.location.href = randomSite;
+                // Redirect ke pencarian gambar kucing lucu
+                window.location.href = "https://www.google.com/search?q=kucing+lucu&tbm=isch";
             }, 800);
         }
     } else {

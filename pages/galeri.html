@@ -84,6 +84,18 @@
         <div class="lightbox-caption" id="lb-caption"></div>
     </div>
 
+    <!-- Caption Modal -->
+    <div id="caption-modal" class="lightbox" style="z-index: 10001; opacity: 1; pointer-events: auto; display: none;">
+        <div style="background: white; padding: 20px; border-radius: 12px; max-width: 300px; width: 90%; text-align: center; font-family: 'Inter', sans-serif;">
+            <h3 style="margin-bottom: 15px; color: var(--text-primary);">Tulis Caption Buat Foto Ini</h3>
+            <input type="text" id="caption-input" placeholder="Contoh: Ini waktu kita ke Bandung! ✨" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #ccc; margin-bottom: 15px; box-sizing: border-box; font-family: 'Caveat', cursive; font-size: 1.2rem;">
+            <div style="display: flex; gap: 10px;">
+                <button onclick="cancelCaption()" style="flex: 1; padding: 10px; background: transparent; color: var(--text-secondary); border: 1px solid #ccc; border-radius: 8px; font-weight: 600; cursor: pointer;">Batal</button>
+                <button onclick="submitCaptionAndUpload()" style="flex: 1; padding: 10px; background: var(--accent); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">Upload</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Audio element for gallery music -->
     <audio id="galeri-music" src="../assets/audio/galeri/galeri.mp3" loop></audio>
 
@@ -145,14 +157,41 @@
         }
 
         // Upload Logic
+        let pendingUploadFile = null;
+        let pendingUploadIsPrivate = false;
+        let pendingUploadBtn = null;
+
         window.handlePhotoUpload = function(event, isPrivate) {
             const file = event.target.files[0];
             if (!file) return;
 
+            pendingUploadFile = file;
+            pendingUploadIsPrivate = isPrivate;
+            pendingUploadBtn = event.target.nextElementSibling;
+            
             // Reset input
             event.target.value = '';
+
+            // Show caption modal
+            document.getElementById('caption-input').value = '';
+            document.getElementById('caption-modal').style.display = 'flex';
+        }
+
+        window.cancelCaption = function() {
+            document.getElementById('caption-modal').style.display = 'none';
+            pendingUploadFile = null;
+            pendingUploadBtn = null;
+        }
+
+        window.submitCaptionAndUpload = function() {
+            let customCaption = document.getElementById('caption-input').value.trim();
+            document.getElementById('caption-modal').style.display = 'none';
+
+            if (!pendingUploadFile || !pendingUploadBtn) return;
+            const file = pendingUploadFile;
+            const isPrivate = pendingUploadIsPrivate;
+            const btn = pendingUploadBtn;
             
-            const btn = event.target.nextElementSibling;
             const originalText = btn.innerHTML;
             btn.innerHTML = "<span>⏳</span> Memproses & Mengunggah...";
 
@@ -162,6 +201,7 @@
                         imageData: base64Data,
                         enteredName: savedName,
                         isPrivate: isPrivate,
+                        caption: customCaption,
                         deleted: false,
                         timestamp: serverTimestamp()
                     });
@@ -237,7 +277,7 @@
 
                 // User photos
                 userPhotos.forEach((photo, i) => {
-                    const caption = `Upload oleh ${photo.enteredName}`;
+                    const caption = photo.caption ? photo.caption : `Upload oleh ${photo.enteredName}`;
                     allLightboxImages.push({ src: photo.imageData, caption: caption });
                     const index = allLightboxImages.length - 1;
                     
@@ -283,7 +323,7 @@
                 }
 
                 userPhotos.forEach((photo, i) => {
-                    const caption = `Rahasia ${i+1}`;
+                    const caption = photo.caption ? photo.caption : `Rahasia ${i+1}`;
                     allLightboxImages.push({ src: photo.imageData, caption: caption });
                     const index = allLightboxImages.length - 1;
                     
@@ -328,20 +368,76 @@
                 errorMsg.style.display = 'none';
                 document.getElementById('diary-locked').style.display = 'none';
                 document.getElementById('diary-unlocked').style.display = 'block';
+                const uploadBtn = document.querySelector('#diary-unlocked .upload-btn');
+                if(uploadBtn) uploadBtn.style.display = 'flex';
                 fetchPrivateGallery(); // Fetch private photos only when unlocked
+            } else if (passInput === '0000') {
+                // FAKE DECOY MODE
+                errorMsg.style.display = 'none';
+                document.getElementById('diary-locked').style.display = 'none';
+                document.getElementById('diary-unlocked').style.display = 'block';
+                showDecoyGallery();
             } else {
                 errorMsg.style.display = 'block';
             }
+        }
+
+        function showDecoyGallery() {
+            // Sembunyikan tombol tambah foto
+            const uploadBtn = document.querySelector('#diary-unlocked .upload-btn');
+            if(uploadBtn) uploadBtn.style.display = 'none';
+
+            const grid = document.getElementById('galeri-grid-privat');
+            const decoyCats = [
+                "https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=400&q=80",
+                "https://images.unsplash.com/photo-1519052537078-e6302a4968d4?w=400&q=80",
+                "https://images.unsplash.com/photo-1495360010541-f48722b34f7d?w=400&q=80",
+                "https://images.unsplash.com/photo-1513360371669-4adf3dd7dff8?w=400&q=80",
+                "https://images.unsplash.com/photo-1543852786-1cf6624b9987?w=400&q=80",
+                "https://images.unsplash.com/photo-1529778459864-dcb41c7bce2d?w=400&q=80"
+            ];
+
+            let htmlStr = '';
+            allLightboxImages = []; 
+            
+            decoyCats.forEach((imgUrl, i) => {
+                const caption = "Mpus " + (i+1) + " 😻";
+                allLightboxImages.push({ src: imgUrl, caption: caption });
+                const index = allLightboxImages.length - 1;
+                htmlStr += `
+                <div class="polaroid" onclick="openLightbox(${index})">
+                    <img src="${imgUrl}" loading="lazy" alt="Decoy Cat">
+                    <div class="polaroid-caption">${caption}</div>
+                </div>`;
+            });
+
+            grid.innerHTML = htmlStr;
         }
 
         // Initial Load
         fetchPublicGallery();
         checkDiaryStatus();
 
-        // LIGHTBOX LOGIC
+        // LIGHTBOX LOGIC & PINCH-TO-ZOOM
         const lightbox = document.getElementById('lightbox');
         const lbImg = document.getElementById('lb-img');
         const lbCaption = document.getElementById('lb-caption');
+        
+        let lbScale = 1;
+        let lbPointX = 0;
+        let lbPointY = 0;
+        let lbStartX = 0;
+        let lbStartY = 0;
+        let lbPanning = false;
+        let lbInitialPinchDist = null;
+        let lbInitialScale = 1;
+
+        function resetLightboxTransform() {
+            lbScale = 1;
+            lbPointX = 0;
+            lbPointY = 0;
+            lbImg.style.transform = `translate(0px, 0px) scale(1)`;
+        }
         
         window.openLightbox = function(index) {
             if(index < 0 || index >= allLightboxImages.length) return;
@@ -352,6 +448,7 @@
 
         function closeLightbox() {
             lightbox.classList.remove('active');
+            resetLightboxTransform();
         }
 
         function nextImage() {
@@ -368,6 +465,7 @@
 
         function updateLightboxContent() {
             lbImg.style.opacity = 0;
+            resetLightboxTransform();
             setTimeout(() => {
                 lbImg.src = allLightboxImages[currentLbIndex].src;
                 lbCaption.innerText = allLightboxImages[currentLbIndex].caption;
@@ -380,7 +478,51 @@
         document.getElementById('lb-prev').addEventListener('click', prevImage);
 
         lightbox.addEventListener('click', (e) => {
+            // Close if clicking outside the image and arrows
             if (e.target === lightbox) closeLightbox();
+        });
+
+        // Touch gestures for Pinch-to-Zoom and Panning
+        lbImg.addEventListener('touchstart', (e) => {
+            if (e.touches.length === 2) {
+                e.preventDefault();
+                lbInitialPinchDist = Math.hypot(
+                    e.touches[0].clientX - e.touches[1].clientX,
+                    e.touches[0].clientY - e.touches[1].clientY
+                );
+                lbInitialScale = lbScale;
+            } else if (e.touches.length === 1) {
+                lbStartX = e.touches[0].clientX - lbPointX;
+                lbStartY = e.touches[0].clientY - lbPointY;
+                lbPanning = true;
+            }
+        });
+
+        lbImg.addEventListener('touchmove', (e) => {
+            if (e.touches.length === 2 && lbInitialPinchDist) {
+                e.preventDefault();
+                const currentDist = Math.hypot(
+                    e.touches[0].clientX - e.touches[1].clientX,
+                    e.touches[0].clientY - e.touches[1].clientY
+                );
+                lbScale = lbInitialScale * (currentDist / lbInitialPinchDist);
+                lbScale = Math.min(Math.max(1, lbScale), 4); // Limit zoom from 1x to 4x
+                
+                if (lbScale === 1) { lbPointX = 0; lbPointY = 0; }
+                lbImg.style.transform = `translate(${lbPointX}px, ${lbPointY}px) scale(${lbScale})`;
+            } else if (e.touches.length === 1 && lbPanning) {
+                if (lbScale > 1) {
+                    e.preventDefault(); // Prevent scroll only when zoomed in
+                    lbPointX = e.touches[0].clientX - lbStartX;
+                    lbPointY = e.touches[0].clientY - lbStartY;
+                    lbImg.style.transform = `translate(${lbPointX}px, ${lbPointY}px) scale(${lbScale})`;
+                }
+            }
+        }, { passive: false });
+
+        lbImg.addEventListener('touchend', (e) => {
+            if (e.touches.length < 2) lbInitialPinchDist = null;
+            if (e.touches.length === 0) lbPanning = false;
         });
 
         // Overlay audio logic
