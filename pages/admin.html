@@ -6,178 +6,295 @@
     <title>Admin Dashboard</title>
     <link rel="stylesheet" href="../style.css">
     <style>
-        .admin-container {
-            max-width: 800px;
-            margin: 40px auto;
+        body {
+            background: #f8fafc;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            margin: 0;
             padding: 20px;
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            color: #334155;
+        }
+        .admin-wrapper {
+            max-width: 900px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+        .admin-container {
+            background: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+            padding: 24px;
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
         }
         .admin-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 20px;
-            border-bottom: 2px solid #eaeaea;
-            padding-bottom: 15px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #f1f5f9;
         }
         .admin-title {
-            color: #333;
-            font-size: 24px;
+            color: #0f172a;
+            font-size: 20px;
+            font-weight: 700;
             margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .admin-desc {
+            font-size: 13px;
+            color: #64748b;
+            font-weight: 400;
+            margin-top: 4px;
+            display: block;
         }
         .back-btn {
-            background: #ff6b6b;
+            background: #ef4444;
             color: white;
             border: none;
             padding: 8px 16px;
-            border-radius: 6px;
+            border-radius: 8px;
             cursor: pointer;
             font-size: 14px;
+            font-weight: 600;
             text-decoration: none;
+            transition: background 0.2s;
+        }
+        .back-btn:hover {
+            background: #dc2626;
+        }
+        .table-responsive {
+            overflow-x: auto;
         }
         table {
             width: 100%;
             border-collapse: collapse;
             font-size: 14px;
+            min-width: 600px;
         }
         th, td {
             text-align: left;
-            padding: 12px;
-            border-bottom: 1px solid #eaeaea;
+            padding: 14px 16px;
+            border-bottom: 1px solid #f1f5f9;
         }
         th {
-            background-color: #f8f9fa;
-            color: #555;
+            background-color: #f8fafc;
+            color: #475569;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 12px;
+            letter-spacing: 0.05em;
         }
         td {
-            color: #333;
+            color: #334155;
+            vertical-align: top;
             word-break: break-word;
         }
-        tr:hover {
-            background-color: #f1f3f5;
+        tr:last-child td {
+            border-bottom: none;
+        }
+        tr:hover td {
+            background-color: #f8fafc;
         }
         .link-loc {
             color: #3b82f6;
             text-decoration: none;
-            font-weight: 500;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: #eff6ff;
+            padding: 4px 10px;
+            border-radius: 6px;
         }
         .link-loc:hover {
-            text-decoration: underline;
+            background: #dbeafe;
         }
         .status-badge {
             display: inline-block;
-            padding: 4px 8px;
-            border-radius: 4px;
+            padding: 4px 10px;
+            border-radius: 999px;
             font-size: 12px;
-            font-weight: bold;
+            font-weight: 600;
+            text-transform: capitalize;
         }
-        .status-granted { background: #d3f9d8; color: #2b8a3e; }
-        .status-denied { background: #ffe3e3; color: #c92a2a; }
-        .status-other { background: #f1f3f5; color: #495057; }
+        .status-granted { background: #dcfce7; color: #166534; }
+        .status-denied { background: #fee2e2; color: #991b1b; }
+        .status-other { background: #f1f5f9; color: #475569; }
+
+        /* Admin Lightbox */
+        #admin-lightbox {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 10000;
+            align-items: center;
+            justify-content: center;
+        }
+        #admin-lightbox.active {
+            display: flex;
+        }
+        #admin-lightbox img {
+            max-width: 90%;
+            max-height: 90vh;
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.8);
+            object-fit: contain;
+        }
+        .close-lightbox {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            color: white;
+            font-size: 30px;
+            cursor: pointer;
+            background: rgba(255,255,255,0.2);
+            width: 40px; height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+        }
+        .close-lightbox:hover {
+            background: rgba(255,255,255,0.4);
+        }
     </style>
 </head>
-<body style="background: #f4f6f8; overflow: auto; align-items: flex-start; padding: 20px;">
+<body>
     
-    <div class="admin-container">
-        <div class="admin-header">
-            <h1 class="admin-title">Log Pengunjung</h1>
-            <a href="../index.html" class="back-btn">Kembali</a>
-        </div>
-
-        <table id="log-table">
-            <thead>
-                <tr>
-                    <th>Waktu</th>
-                    <th>Nama Input</th>
-                    <th>Perangkat</th>
-                    <th>Browser / OS</th>
-                    <th>Status Lokasi</th>
-                    <th>Koordinat (Maps)</th>
-                </tr>
-            </thead>
-            <tbody id="log-body">
-                <tr><td colspan="5" style="text-align: center;">Memuat data...</td></tr>
-            </tbody>
-        </table>
+    <!-- Lightbox Modal -->
+    <div id="admin-lightbox" onclick="closeAdminLightbox()">
+        <button class="close-lightbox" onclick="closeAdminLightbox()">×</button>
+        <img id="admin-lightbox-img" src="" alt="Full Photo">
     </div>
 
-    <!-- Secret Notes Table -->
-    <div class="admin-container" style="margin-top: 20px;">
-        <div class="admin-header">
-            <h1 class="admin-title">Password Buku Harian 🔑</h1>
-        </div>
-        <table>
-            <thead>
-                <tr>
-                    <th>Waktu Dibuat</th>
-                    <th>Nama</th>
-                    <th>Password yang Dibuat</th>
-                </tr>
-            </thead>
-            <tbody id="passwords-body">
-                <tr><td colspan="3" style="text-align: center;">Memuat data...</td></tr>
-            </tbody>
-        </table>
-    </div>
+    <div class="admin-wrapper">
+        <div class="admin-container">
+            <div class="admin-header">
+                <div>
+                    <h1 class="admin-title">📍 Log Pengunjung & Lokasi</h1>
+                    <span class="admin-desc">Merekam riwayat akses dan titik koordinat pengguna.</span>
+                </div>
+                <a href="../index.html" class="back-btn">Kembali</a>
+            </div>
 
-    <div class="admin-container">
-        <div class="admin-header">
-            <h1 class="admin-title">Buku Harian Doi 🔒</h1>
+            <div class="table-responsive">
+                <table id="log-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 15%">Waktu</th>
+                            <th style="width: 15%">Nama Input</th>
+                            <th style="width: 15%">Perangkat</th>
+                            <th style="width: 25%">Browser / OS</th>
+                            <th style="width: 15%">Izin Lokasi</th>
+                            <th style="width: 15%">Titik Maps</th>
+                        </tr>
+                    </thead>
+                    <tbody id="log-body">
+                        <tr><td colspan="6" style="text-align: center; color: #94a3b8; padding: 30px;">Memuat riwayat login...</td></tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
-        <table>
-            <thead>
-                <tr>
-                    <th style="width: 20%;">Waktu</th>
-                    <th style="width: 15%;">Nama</th>
-                    <th style="width: 65%;">Isi Tulisan</th>
-                </tr>
-            </thead>
-            <tbody id="notes-body">
-                <tr><td colspan="3" style="text-align: center;">Memuat data...</td></tr>
-            </tbody>
-        </table>
-    </div>
 
-    <!-- Private Photos Table -->
-    <div class="admin-container">
-        <div class="admin-header">
-            <h1 class="admin-title">Galeri Privat Doi 📸</h1>
+        <div class="admin-container">
+            <div class="admin-header">
+                <div>
+                    <h1 class="admin-title">🔑 Password Buku Harian</h1>
+                    <span class="admin-desc">Daftar sandi privat yang dibuat oleh pengguna.</span>
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 25%">Waktu Dibuat</th>
+                            <th style="width: 25%">Nama</th>
+                            <th style="width: 50%">Password Aktif</th>
+                        </tr>
+                    </thead>
+                    <tbody id="passwords-body">
+                        <tr><td colspan="3" style="text-align: center; color: #94a3b8; padding: 30px;">Memuat data sandi...</td></tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
-        <table>
-            <thead>
-                <tr>
-                    <th style="width: 20%;">Waktu Upload</th>
-                    <th style="width: 15%;">Nama</th>
-                    <th style="width: 65%;">Pratinjau Foto</th>
-                </tr>
-            </thead>
-            <tbody id="private-photos-body">
-                <tr><td colspan="3" style="text-align: center;">Memuat data...</td></tr>
-            </tbody>
-        </table>
-    </div>
 
-    <!-- Deleted Photos Table -->
-    <div class="admin-container">
-        <div class="admin-header">
-            <h1 class="admin-title">Log Foto yang Dihapus 🗑️</h1>
-            <span style="font-size: 12px; color: #888;">Foto ini dihapus oleh user, tapi tetap tersimpan di sini.</span>
+        <div class="admin-container">
+            <div class="admin-header">
+                <div>
+                    <h1 class="admin-title">📓 Buku Harian Doi (Privat)</h1>
+                    <span class="admin-desc">Seluruh catatan rahasia yang disembunyikan.</span>
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 20%;">Waktu</th>
+                            <th style="width: 15%;">Nama</th>
+                            <th style="width: 65%;">Isi Tulisan</th>
+                        </tr>
+                    </thead>
+                    <tbody id="notes-body">
+                        <tr><td colspan="3" style="text-align: center; color: #94a3b8; padding: 30px;">Memuat data catatan...</td></tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
-        <table>
-            <thead>
-                <tr>
-                    <th style="width: 20%;">Waktu Upload</th>
-                    <th style="width: 15%;">Nama</th>
-                    <th style="width: 15%;">Jenis</th>
-                    <th style="width: 50%;">Pratinjau Foto</th>
-                </tr>
-            </thead>
-            <tbody id="deleted-photos-body">
-                <tr><td colspan="4" style="text-align: center;">Memuat data...</td></tr>
-            </tbody>
-        </table>
+
+        <div class="admin-container">
+            <div class="admin-header">
+                <div>
+                    <h1 class="admin-title">📸 Galeri Privat Doi</h1>
+                    <span class="admin-desc">Foto-foto yang diunggah ke area brankas rahasia.</span>
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 20%;">Waktu Upload</th>
+                            <th style="width: 15%;">Nama Pengunggah</th>
+                            <th style="width: 65%;">Pratinjau Foto</th>
+                        </tr>
+                    </thead>
+                    <tbody id="private-photos-body">
+                        <tr><td colspan="3" style="text-align: center; color: #94a3b8; padding: 30px;">Memuat data galeri...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="admin-container">
+            <div class="admin-header">
+                <div>
+                    <h1 class="admin-title">🗑️ Tong Sampah (Log Foto Dihapus)</h1>
+                    <span class="admin-desc">Foto yang seolah-olah dihapus oleh pengguna, tetap tersimpan.</span>
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 20%;">Waktu Upload</th>
+                            <th style="width: 15%;">Nama</th>
+                            <th style="width: 15%;">Asal Album</th>
+                            <th style="width: 50%;">Pratinjau Foto</th>
+                        </tr>
+                    </thead>
+                    <tbody id="deleted-photos-body">
+                        <tr><td colspan="4" style="text-align: center; color: #94a3b8; padding: 30px;">Memuat data sampah...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 
     <script type="module">
@@ -320,6 +437,15 @@
             }
         }
 
+        window.openAdminLightbox = function(base64Data) {
+            document.getElementById('admin-lightbox-img').src = base64Data;
+            document.getElementById('admin-lightbox').classList.add('active');
+        }
+
+        window.closeAdminLightbox = function() {
+            document.getElementById('admin-lightbox').classList.remove('active');
+        }
+
         async function fetchPhotos() {
             const privateBody = document.getElementById('private-photos-body');
             const deletedBody = document.getElementById('deleted-photos-body');
@@ -343,7 +469,7 @@
                         timeStr = date.toLocaleString('id-ID');
                     }
 
-                    const imgHtml = `<img src="${data.imageData}" style="height: 100px; border-radius: 8px; border: 1px solid #ccc; object-fit: cover; cursor: pointer;" onclick="window.open('${data.imageData}')">`;
+                    const imgHtml = `<img src="${data.imageData}" style="height: 100px; border-radius: 8px; border: 1px solid #ccc; object-fit: cover; cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'" onclick="openAdminLightbox('${data.imageData}')">`;
 
                     if (data.deleted) {
                         deletedCount++;

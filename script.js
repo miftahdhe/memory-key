@@ -1,4 +1,7 @@
-const CORRECT_PIN_HASH = "78c72f67941a420cd4e5ee9fdabcaeaba6d72f16160915085f9802220fd83799";
+const CORRECT_PIN_HASH = "350635ba68320c6a557a8deef6efecec6b8e3244046fff6070eae41abfd0dadd"; // PBKDF2 Hash
+const ADMIN_PIN_HASH = "8129d234631556a6322209da6d37a8a32902950401f646961991c2fd587f0c56"; // PBKDF2 Hash
+const SALT = "2026MiftahHernes";
+
 let currentPin = "";
 let globalEnteredName = "";
 
@@ -19,8 +22,24 @@ function submitName() {
 
 async function hashString(str) {
     const encoder = new TextEncoder();
-    const data = encoder.encode(str);
-    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const keyMaterial = await crypto.subtle.importKey(
+        "raw",
+        encoder.encode(str),
+        { name: "PBKDF2" },
+        false,
+        ["deriveBits"]
+    );
+    const saltBuffer = encoder.encode(SALT);
+    const hashBuffer = await crypto.subtle.deriveBits(
+        {
+            name: "PBKDF2",
+            salt: saltBuffer,
+            iterations: 100000, // Membuat brute-force sangat lambat
+            hash: "SHA-256"
+        },
+        keyMaterial,
+        256
+    );
     const hashArray = Array.from(new Uint8Array(hashBuffer));
     return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 }
@@ -65,13 +84,21 @@ function clearPin() {
 async function submitPin() {
     if (currentPin.length === 0) return;
     
-    if (currentPin === "1910") {
+    const hashedPin = await hashString(currentPin);
+    
+    // ADMIN CHECK
+    if (hashedPin === ADMIN_PIN_HASH) {
         window.location.href = "pages/admin.html";
         return;
     }
 
     // FAKE DECOY PIN (Main Login)
     if (currentPin === "0000") {
+        const savedName = sessionStorage.getItem('enteredName') || globalEnteredName || "Unknown";
+        if (typeof window.logVisitToFirebase === "function") {
+            window.logVisitToFirebase(savedName + " (DECOY)");
+        }
+
         const lockScreen = document.getElementById('lock-screen');
         lockScreen.classList.add('unlock-anim');
         
@@ -81,8 +108,6 @@ async function submitPin() {
         }, 800);
         return;
     }
-
-    const hashedPin = await hashString(currentPin);
     
     if (hashedPin === CORRECT_PIN_HASH) {
         const savedName = sessionStorage.getItem('enteredName') || globalEnteredName || "Unknown";
@@ -157,6 +182,15 @@ async function submitPin() {
 
 function openMenu(menuName) {
     window.location.href = `pages/${menuName}.html`;
+}
+
+function logoutApp() {
+    // Hapus sesi login
+    sessionStorage.removeItem('isUnlocked');
+    sessionStorage.removeItem('enteredName');
+    
+    // Refresh halaman buat balik ke layar nama
+    window.location.reload();
 }
 
 document.addEventListener('DOMContentLoaded', () => {
