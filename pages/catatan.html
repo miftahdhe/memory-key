@@ -195,7 +195,7 @@
 
             <!-- Tab 1: Catatan -->
             <div id="tab-catatan" style="flex: 1; overflow-y: auto;">
-                <button class="write-btn" onclick="openWriteModal('public')" style="margin-bottom: 15px;">+ Tulis Catatan Umum (Semua Orang Bisa Lihat)</button>
+                <button class="write-btn" onclick="openWriteModal('public')" style="margin-bottom: 15px;">+ Tambah Catatan</button>
                 <div id="public-notes-display" class="notes-list" style="padding-bottom: 0;">
                     <!-- Public cloud notes loaded here -->
                 </div>
@@ -321,7 +321,7 @@
             currentWriteType = type;
             const modalHeader = document.querySelector('#write-modal .modal-header h3');
             if (type === 'public') {
-                modalHeader.innerText = "Tulis Catatan Umum...";
+                modalHeader.innerText = "Tulis Catatan...";
             } else {
                 modalHeader.innerText = "Tulis Catatan Privat...";
             }
