@@ -1,68 +1,11 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Memory Key - Diary</title>
-    <link rel="stylesheet" href="../style.css">
-</head>
-<body>
-    <div class="screen active">
-        <div class="dashboard">
-            <button class="back-btn" onclick="window.history.back()">← Kembali</button>
-            <h2 class="dashboard-title">Diary</h2>
-            <div class="dashboard-divider"></div>
-            
-            <div style="margin-bottom: 2rem; padding: 1.2rem; background: rgba(255, 255, 255, 0.4); border-radius: 12px; border-left: 3px solid var(--accent); font-family: 'Caveat', cursive; font-size: 1.3rem; color: var(--text-primary); line-height: 1.4; text-align: center; box-shadow: 0 4px 12px rgba(136, 14, 79, 0.03);">
-                Kalau kamu mencoba memahami sedikit lebih dalam, mungkin kamu akan menemukan arti dari istilah-istilah yang ada di tulisan ini. Karena tulisan ini bukan sekadar rangkaian kata, melainkan gambaran dari kejadian nyata yang pernah aku alami.
-            </div>
-
-            <button class="menu-btn" onclick="openWriteModal()" style="margin-bottom: 15px; background: var(--accent); justify-content: center; font-weight: bold;"><span style="color: white; font-size: 14px; font-weight: 500;">+ Buat Tulisan Baru</span></button><div id="user-diaries-container" style="display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1rem;"></div><div class="content-placeholder" style="display: flex; flex-direction: column; gap: 1rem;">
-                <button class="menu-btn list-btn" onclick="window.location.href='baca.html?id=1'">
-                    <div class="menu-btn-content">
-                        <span class="menu-btn-title">Dalam Lima Waktuku</span>
-                    </div>
-                </button>
-                <button class="menu-btn list-btn" onclick="window.location.href='baca.html?id=2'">
-                    <div class="menu-btn-content">
-                        <span class="menu-btn-title">Sajak Untukmu</span>
-                    </div>
-                </button>
-                <button class="menu-btn list-btn" onclick="window.location.href='baca.html?id=3'">
-                    <div class="menu-btn-content">
-                        <span class="menu-btn-title">Porsi</span>
-                    </div>
-                </button>
-                <button class="menu-btn list-btn" onclick="window.location.href='baca.html?id=4'">
-                    <div class="menu-btn-content">
-                        <span class="menu-btn-title">Berubah Arah</span>
-                    </div>
-                </button>
-                <button class="menu-btn list-btn" onclick="window.location.href='baca.html?id=5'">
-                    <div class="menu-btn-content">
-                        <span class="menu-btn-title">10 malam</span>
-                    </div>
-                </button>
-                <button class="menu-btn list-btn" onclick="window.location.href='baca.html?id=6'">
-                    <div class="menu-btn-content">
-                        <span class="menu-btn-title">10 tahun</span>
-                    </div>
-                </button>
-                <button class="menu-btn list-btn" onclick="window.location.href='baca.html?id=7'">
-                    <div class="menu-btn-content">
-                        <span class="menu-btn-title">Hening</span>
-                    </div>
-                </button>
-            </div>
-        </div>
-    </div>
-
+const fs = require('fs');
+let html = fs.readFileSync('pages/diary.html', 'utf8');
+const modalHTML = `
     <!-- Modal Buat Diary -->
     <div id="write-modal" class="modal-overlay" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; padding: 20px;">
         <div style="background: var(--bg-primary); width: 100%; max-width: 500px; border-radius: 16px; padding: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1);">
             <h3 style="font-size: 18px; margin-bottom: 15px; font-weight: 600; color: var(--text-primary);">Buat Tulisan Baru</h3>
             <input type="text" id="diary-title" placeholder="Judul Tulisan" style="width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 8px; border: 1px solid rgba(136, 14, 79, 0.2); font-family: 'Inter', sans-serif; box-sizing: border-box;">
-            <input type="text" id="diary-youtube" placeholder="Link YouTube Musik (Opsional)" style="width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 8px; border: 1px solid rgba(136, 14, 79, 0.2); font-family: 'Inter', sans-serif; box-sizing: border-box;">
             <textarea id="diary-content" placeholder="Tuliskan sesuatu..." rows="6" style="width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 8px; border: 1px solid rgba(136, 14, 79, 0.2); font-family: 'Inter', sans-serif; resize: vertical; box-sizing: border-box;"></textarea>
             <div style="display: flex; gap: 10px; justify-content: flex-end;">
                 <button onclick="closeWriteModal()" style="padding: 10px 15px; background: transparent; border: 1px solid #cbd5e1; border-radius: 8px; color: var(--text-secondary); cursor: pointer; font-weight: 500;">Batal</button>
@@ -94,13 +37,11 @@
             document.getElementById('write-modal').style.display = 'none';
             document.getElementById('diary-title').value = '';
             document.getElementById('diary-content').value = '';
-            document.getElementById('diary-youtube').value = '';
         };
 
         window.saveDiary = async function() {
             const title = document.getElementById('diary-title').value.trim();
             const content = document.getElementById('diary-content').value.trim();
-            const ytLink = document.getElementById('diary-youtube').value.trim();
             const name = sessionStorage.getItem('enteredName') || 'Unknown';
             
             if (!title || !content) {
@@ -113,16 +54,12 @@
             btn.disabled = true;
             
             try {
-                const docData = {
+                await addDoc(collection(db, "user_diaries"), {
                     title: title,
                     content: content,
                     enteredName: name,
                     timestamp: serverTimestamp()
-                };
-                if (ytLink) {
-                    docData.youtubeLink = ytLink;
-                }
-                await addDoc(collection(db, "user_diaries"), docData);
+                });
                 closeWriteModal();
                 loadUserDiaries();
             } catch(e) {
@@ -164,5 +101,6 @@
         
         document.addEventListener('DOMContentLoaded', loadUserDiaries);
     </script>
-</body>
-</html>
+`;
+html = html.replace('</body>', modalHTML + '</body>');
+fs.writeFileSync('pages/diary.html', html);

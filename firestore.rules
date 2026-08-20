@@ -72,6 +72,21 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    function isValidUserDiary(data) {
+      return data.keys().hasAll(['title', 'content', 'enteredName', 'timestamp']) &&
+             data.title is string &&
+             data.content is string &&
+             data.enteredName is string &&
+             data.timestamp is timestamp &&
+             (!data.keys().hasAny(['youtubeLink']) || data.youtubeLink is string);
+    }
+
+    match /user_diaries/{diaryId} {
+      allow read: if true;
+      allow create: if isValidUserDiary(request.resource.data);
+      allow update, delete: if false;
+    }
+
     match /time_capsules/{capsuleId} {
       allow read: if true;
       allow create: if isValidTimeCapsule(request.resource.data);

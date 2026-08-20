@@ -51,9 +51,45 @@
         <div class="pen" id="pen-cursor">✏️</div>
         <div class="hint-text" id="hint-text">Ketuk buku untuk membuka</div>
     </div>
+    
+    <div id="yt-player-container" style="display: none; position: absolute; top: -9999px; left: -9999px;">
+        <div id="yt-player"></div>
+    </div>
+    <script src="https://www.youtube.com/iframe_api"></script>
 
     <audio id="bg-music" loop></audio>
 
     <script src="baca.js"></script>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+        
+        const firebaseConfig = {
+            projectId: "articulate-summer-58chg",
+            appId: "1:865644935448:web:c18c46e5457616c7a5c66d",
+            apiKey: "AIzaSyAwNe_iTf3a6cFmliiZaGrmLCnn-mBl-9c",
+            authDomain: "articulate-summer-58chg.firebaseapp.com",
+            storageBucket: "articulate-summer-58chg.firebasestorage.app",
+            messagingSenderId: "865644935448"
+        };
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app, "ai-studio-memorykey-6b6d5d2b-ef2b-407f-8d98-76d614ba8b9d");
+
+        window.fetchDiaryFromDB = async function(dbId) {
+            try {
+                const docRef = doc(db, "user_diaries", dbId);
+                const docSnap = await getDoc(docRef);
+                if (docSnap.exists()) {
+                    return docSnap.data();
+                } else {
+                    return null;
+                }
+            } catch (e) {
+                console.error("Error getting document:", e);
+                return null;
+            }
+        };
+    </script>
 </body>
 </html>

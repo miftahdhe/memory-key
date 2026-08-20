@@ -1,4 +1,53 @@
 document.addEventListener('DOMContentLoaded', async () => {
+    let ytPlayer = null;
+    let ytReady = false;
+    
+    // Function to extract YT ID
+    function extractVideoID(url) {
+        var regExp = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/;
+        var match = url.match(regExp);
+        return (match && match[7].length == 11) ? match[7] : false;
+    }
+
+    window.onYouTubeIframeAPIReady = function() {
+        if (window.youtubeLinkData) {
+            const vidId = extractVideoID(window.youtubeLinkData);
+            if (vidId) {
+                ytPlayer = new YT.Player('yt-player', {
+                    height: '0',
+                    width: '0',
+                    videoId: vidId,
+                    playerVars: {
+                        'autoplay': 0,
+                        'controls': 0,
+                        'loop': 1,
+                        'playlist': vidId
+                    },
+                    events: {
+                        'onReady': () => { ytReady = true; }
+                    }
+                });
+            }
+        }
+    };
+
+    function playMusic() {
+        if (ytReady && ytPlayer && typeof ytPlayer.playVideo === 'function') {
+            ytPlayer.setVolume(50);
+            ytPlayer.playVideo();
+        } else if (audio && audio.paused && !window.youtubeLinkData) {
+            audio.play().catch(e=>console.log(e));
+        }
+    }
+    
+    function pauseMusic() {
+        if (ytReady && ytPlayer && typeof ytPlayer.pauseVideo === 'function') {
+            ytPlayer.pauseVideo();
+        } else if (audio && !audio.paused && !window.youtubeLinkData) {
+            audio.pause();
+        }
+    }
+
     const loadingScreen = document.getElementById('loading-screen');
     const bookScreen = document.getElementById('book-screen');
     const leftTextContainer = document.getElementById('left-text-container');
@@ -7,7 +56,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const hintText = document.getElementById('hint-text');
     const book = document.getElementById('the-book');
     const audio = document.getElementById('bg-music');
-    document.body.addEventListener("click", () => { if(audio && audio.paused) audio.play().catch(e=>console.log(e)); });
+    document.body.addEventListener("click", () => { playMusic(); });
 
     let fullText = "";
     let tokens = [];
@@ -27,56 +76,83 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Get ID from URL
     const urlParams = new URLSearchParams(window.location.search);
-    const diaryId = urlParams.get('id') || '1'; // Default to 1 if no ID
+    const diaryId = urlParams.get('id');
+    const dbId = urlParams.get('dbId');
 
-    // Set Audio Source dynamically
-    audio.src = `../assets/audio/diary/diary${diaryId}.mp3`;
-    audio.load();
-
-    // Load text
-    try {
-        const response = await fetch(`../assets/diary/diary${diaryId}.txt`);
-        if (!response.ok) throw new Error("File tidak ditemukan");
-        fullText = await response.text();
-    } catch (error) {
-        fullText = "Teks diary tidak ditemukan.";
-        console.error(error);
-    }
-    
-    // Update cover title
     const bookTitleEl = document.querySelector('.book-title');
-    if (bookTitleEl) {
-        if (diaryId === '2') {
-            bookTitleEl.textContent = 'Sajak Untukmu';
-        } else if (diaryId === '3') {
-            bookTitleEl.textContent = 'Porsi';
-        } else if (diaryId === '4') {
-            bookTitleEl.textContent = 'Berubah Arah';
-        } else if (diaryId === '5') {
-            bookTitleEl.textContent = '10 malam';
-        } else if (diaryId === '6') {
-            bookTitleEl.textContent = '10 tahun';
-        } else if (diaryId === '7') {
-            bookTitleEl.textContent = 'Hening';
-        } else {
-            bookTitleEl.textContent = 'Dalam Lima Waktuku';
+
+    if (dbId) {
+        const fetchWait = async () => {
+            if (typeof window.fetchDiaryFromDB === "function") {
+                const data = await window.fetchDiaryFromDB(dbId);
+                if (data) {
+                    fullText = data.content;
+                    if (bookTitleEl) bookTitleEl.textContent = data.title;
+                    if (data.youtubeLink) {
+                        window.youtubeLinkData = data.youtubeLink;
+                    }
+                } else {
+                    fullText = "Teks diary tidak ditemukan.";
+                }
+                processText();
+            } else {
+                setTimeout(fetchWait, 100);
+            }
+        };
+        fetchWait();
+        audio.src = `../assets/audio/diary/diary1.mp3`;
+        audio.load();
+        return;
+    } else {
+        const idToUse = diaryId || '1';
+        audio.src = `../assets/audio/diary/diary${idToUse}.mp3`;
+        audio.load();
+        
+        try {
+            const response = await fetch(`../assets/diary/diary${idToUse}.txt`);
+            if (!response.ok) throw new Error("File tidak ditemukan");
+            fullText = await response.text();
+        } catch (error) {
+            fullText = "Teks diary tidak ditemukan.";
+            console.error(error);
         }
+
+        if (bookTitleEl) {
+            if (idToUse === '2') {
+                bookTitleEl.textContent = 'Sajak Untukmu';
+            } else if (idToUse === '3') {
+                bookTitleEl.textContent = 'Porsi';
+            } else if (idToUse === '4') {
+                bookTitleEl.textContent = 'Berubah Arah';
+            } else if (idToUse === '5') {
+                bookTitleEl.textContent = '10 malam';
+            } else if (idToUse === '6') {
+                bookTitleEl.textContent = '10 tahun';
+            } else if (idToUse === '7') {
+                bookTitleEl.textContent = 'Hening';
+            } else {
+                bookTitleEl.textContent = 'Dalam Lima Waktuku';
+            }
+        }
+        processText();
     }
 
-    parseTextToTokens();
-    
-    // Wait for fonts to load before measuring
-    await document.fonts.ready; await new Promise(r => setTimeout(r, 100));
-    
-    // We will measure pages now
-    measurePages();
-
-    loadingScreen.classList.remove('active');
-    bookScreen.classList.add('active');
-    
-    setTimeout(() => {
-        hintText.classList.add('visible');
-    }, 1000);
+    function processText() {
+        parseTextToTokens();
+        
+        document.fonts.ready.then(() => {
+            setTimeout(() => {
+                measurePages();
+                
+                loadingScreen.classList.remove('active');
+                bookScreen.classList.add('active');
+                
+                setTimeout(() => {
+                    hintText.classList.add('visible');
+                }, 1000);
+            }, 100);
+        });
+    }
 
     let touchStartX = 0;
     let touchEndX = 0;
@@ -255,8 +331,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         book.classList.add('open');
         hintText.classList.remove('visible');
         
-        audio.volume = 0.5;
-        audio.play().catch(e => console.log("Autoplay blocked, will play on next interaction."));
+        
+        playMusic(););
         
         setTimeout(() => {
             currentPageIndex = 0;
@@ -341,7 +417,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         hintText.classList.remove('visible');
         
         if (audio.paused) {
-            audio.play().catch(e => console.log(e));
+            playMusic(););
         }
 
         const flipPage = document.createElement('div');
@@ -411,7 +487,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         hintText.classList.remove('visible');
         
         if (audio.paused) {
-            audio.play().catch(e => console.log(e));
+            playMusic(););
         }
         
         // We need to animate a page flipping from left to right.
