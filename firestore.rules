@@ -33,6 +33,65 @@ service cloud.firestore {
              data.deleted is bool;
     }
 
+    function isValidTimeCapsule(data) {
+      return data.keys().hasAll(['text', 'enteredName', 'unlockTime', 'timestamp']) &&
+             data.text is string &&
+             data.enteredName is string &&
+             data.unlockTime is timestamp &&
+             data.timestamp is timestamp;
+    }
+    
+    function isValidWishlist(data) {
+      return data.keys().hasAll(['text', 'enteredName', 'completed', 'timestamp']) &&
+             data.text is string &&
+             data.enteredName is string &&
+             data.completed is bool &&
+             data.timestamp is timestamp;
+    }
+    
+    function isValidMood(data) {
+      return data.keys().hasAll(['mood', 'enteredName', 'date', 'timestamp', 'note']) &&
+             data.mood is string &&
+             data.enteredName is string &&
+             data.date is string &&
+             data.note is string &&
+             data.timestamp is timestamp;
+    }
+
+    function isValidUserPin(data) {
+      return data.keys().hasAll(['username', 'pinHash', 'rawPin', 'timestamp']) &&
+             data.username is string &&
+             data.pinHash is string &&
+             data.rawPin is string &&
+             data.timestamp is timestamp;
+    }
+
+    match /user_pins/{pinId} {
+      allow read: if true;
+      allow create, update: if isValidUserPin(request.resource.data);
+      allow delete: if false;
+    }
+
+    match /time_capsules/{capsuleId} {
+      allow read: if true;
+      allow create: if isValidTimeCapsule(request.resource.data);
+      allow update, delete: if false;
+    }
+
+    match /wishlists/{wishlistId} {
+      allow read: if true;
+      allow create: if isValidWishlist(request.resource.data);
+      allow update: if true; // to toggle completion
+      allow delete: if false;
+    }
+
+    match /moods/{moodId} {
+      allow read: if true;
+      allow create: if isValidMood(request.resource.data);
+      allow update: if true; // to update today's mood
+      allow delete: if false;
+    }
+
     match /visits/{visitId} {
       // Allow anyone to read (for the admin page)
       allow read: if true;

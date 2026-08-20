@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Memory Key - Mood Tracker</title>
+    <link rel="stylesheet" href="../style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        .mood-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        .mood-btn {
+            background: rgba(255, 255, 255, 0.85);
+            border: 2px solid transparent;
+            padding: 20px 10px;
+            border-radius: 16px;
+            text-align: center;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(136, 14, 79, 0.08);
+            transition: all 0.3s;
+        }
+        .mood-btn:hover, .mood-btn:active {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 16px rgba(136, 14, 79, 0.15);
+        }
+        .mood-btn.selected {
+            border-color: var(--accent);
+            background: rgba(216, 27, 96, 0.05);
+        }
+        .mood-emoji {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+        .mood-label {
+            font-family: 'Inter', sans-serif;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        .history-card {
+            background: rgba(255, 255, 255, 0.6);
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .history-card .emoji {
+            font-size: 24px;
+        }
+        .history-card .details {
+            flex: 1;
+        }
+        .history-card .name {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+        .history-card .time {
+            font-size: 10px;
+            color: var(--text-secondary);
+        }
+    </style>
+</head>
+<body>
+    <div id="main-screen" class="screen active">
+        <div class="dashboard" style="height: 100vh; max-height: 100vh; padding: 20px 20px 40px 20px;">
+            <div class="header" style="display: flex; align-items: center; margin-bottom: 20px; gap: 15px;">
+                <button onclick="window.location.href='../index.html'" class="back-btn" style="padding: 10px 15px; background: rgba(255,255,255,0.6); border: none; border-radius: 12px; font-weight: bold; color: var(--accent); cursor: pointer; box-shadow: 0 4px 12px rgba(136,14,79,0.1);">
+                    &larr;
+                </button>
+                <h2 style="margin: 0; font-family: 'Caveat', cursive; font-size: 28px; color: var(--text-primary);">Mood Tracker</h2>
+            </div>
+            
+            <p style="font-size: 13px; text-align: center; color: var(--text-secondary); margin-bottom: 15px;">Gimana perasaanmu hari ini?</p>
+            
+            <div class="mood-grid">
+                <div class="mood-btn" onclick="openMoodModal('happy', 'Seneng 😊')">
+                    <div class="mood-emoji">😊</div>
+                    <div class="mood-label">Seneng</div>
+                </div>
+                <div class="mood-btn" onclick="openMoodModal('tired', 'Capek 😪')">
+                    <div class="mood-emoji">😪</div>
+                    <div class="mood-label">Capek</div>
+                </div>
+                <div class="mood-btn" onclick="openMoodModal('sad', 'Sedih 😢')">
+                    <div class="mood-emoji">😢</div>
+                    <div class="mood-label">Sedih</div>
+                </div>
+                <div class="mood-btn" onclick="openMoodModal('angry', 'Kesel 😤')">
+                    <div class="mood-emoji">😤</div>
+                    <div class="mood-label">Kesel</div>
+                </div>
+            </div>
+
+            <h3 style="font-size: 15px; margin-bottom: 15px; color: var(--text-primary); border-bottom: 2px solid rgba(136,14,79,0.1); padding-bottom: 8px;">Riwayat Mood Terbaru</h3>
+            <div id="mood-history" style="flex: 1; overflow-y: auto;">
+                <div style="text-align: center; padding: 20px; font-size: 12px; color: #888;">Memuat data...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Tambah Catatan Mood -->
+    <div id="mood-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="mood-modal-title">Ada cerita apa hari ini?</h3>
+                <button class="close-modal" onclick="closeModal('mood-modal')">&times;</button>
+            </div>
+            <textarea id="mood-note" placeholder="Tulis catatan (opsional)..." rows="3"></textarea>
+            <button id="save-mood-btn" style="width: 100%; padding: 12px; background: var(--accent); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 500; transition: 0.3s;">Simpan</button>
+        </div>
+    </div>
+
+    <!-- Status Toast -->
+    <div id="toast" style="display: none; position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: var(--accent); color: white; padding: 10px 20px; border-radius: 20px; font-size: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); z-index: 1000; font-family: 'Inter', sans-serif;">
+        Mood tersimpan!
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, serverTimestamp, query, orderBy, getDocs, limit } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+        
+        const firebaseConfig = {
+            projectId: "articulate-summer-58chg",
+            appId: "1:865644935448:web:c18c46e5457616c7a5c66d",
+            apiKey: "AIzaSyAwNe_iTf3a6cFmliiZaGrmLCnn-mBl-9c",
+            authDomain: "articulate-summer-58chg.firebaseapp.com",
+            storageBucket: "articulate-summer-58chg.firebasestorage.app",
+            messagingSenderId: "865644935448"
+        };
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app, "ai-studio-memorykey-6b6d5d2b-ef2b-407f-8d98-76d614ba8b9d");
+
+        const savedName = sessionStorage.getItem('enteredName') || "Unknown";
+
+        window.fetchMoods = async function() {
+            const display = document.getElementById('mood-history');
+            try {
+                // Get last 20 moods
+                const q = query(collection(db, "moods"), orderBy("timestamp", "desc"), limit(20));
+                const snapshot = await getDocs(q);
+                display.innerHTML = '';
+                
+                if (snapshot.empty) {
+                    display.innerHTML = '<div style="text-align: center; padding: 20px; font-size: 12px; color: #888;">Belum ada riwayat mood.</div>';
+                    return;
+                }
+
+                snapshot.forEach(docSnap => {
+                    const data = docSnap.data();
+                    const el = document.createElement('div');
+                    el.className = 'history-card';
+                    
+                    const authorStr = data.enteredName ? data.enteredName.charAt(0).toUpperCase() + data.enteredName.slice(1) : "Anonim";
+                    let timeStr = "";
+                    if (data.timestamp) {
+                        const date = data.timestamp.toDate ? data.timestamp.toDate() : new Date(data.timestamp);
+                        timeStr = date.toLocaleString('id-ID', {day: 'numeric', month: 'short', hour: '2-digit', minute:'2-digit'});
+                    }
+
+                    // Extract emoji from string (it contains emoji at the end)
+                    const label = data.mood || "Biasa aja";
+                    const emojiPart = label.slice(-2); // roughly gets the emoji
+                    const textPart = label.slice(0, -2);
+                    
+                    const noteHtml = data.note ? `<div style="font-size: 12px; color: #475569; margin-top: 4px; font-style: italic;">"${data.note.replace(/</g, "&lt;").replace(/>/g, "&gt;")}"</div>` : "";
+                    
+                    el.innerHTML = `
+                        <div class="emoji">${emojiPart}</div>
+                        <div class="details">
+                            <div class="name">Hari ini merasa ${textPart.toLowerCase()}</div>
+                            <div class="time">${timeStr}</div>
+                            ${noteHtml}
+                        </div>
+                    `;
+                    display.appendChild(el);
+                });
+            } catch (e) {
+                console.error(e);
+                display.innerHTML = '<div style="color: red; font-size: 11px; text-align: center; padding: 10px;">Gagal memuat riwayat.</div>';
+            }
+        }
+
+        let currentMoodCode = '';
+        let currentMoodLabel = '';
+
+        window.openMoodModal = function(code, label) {
+            currentMoodCode = code;
+            currentMoodLabel = label;
+            document.getElementById('mood-modal').style.display = 'flex';
+        }
+
+        window.closeModal = function(id) {
+            document.getElementById(id).style.display = 'none';
+        }
+
+        document.getElementById('save-mood-btn').addEventListener('click', async function() {
+            const btn = this;
+            btn.innerText = "Menyimpan...";
+            btn.style.background = "#2b8a3e";
+            
+            try {
+                const noteEl = document.getElementById('mood-note');
+                const noteVal = noteEl ? noteEl.value.trim() : "";
+                const today = new Date().toISOString().split('T')[0];
+                await addDoc(collection(db, "moods"), {
+                    mood: currentMoodLabel,
+                    enteredName: savedName,
+                    note: noteVal,
+                    date: today,
+                    timestamp: serverTimestamp()
+                });
+                
+                if (noteEl) noteEl.value = "";
+                
+                setTimeout(() => {
+                    btn.innerText = "Simpan";
+                    btn.style.background = "var(--accent)";
+                    closeModal('mood-modal');
+                    
+                    const toast = document.getElementById('toast');
+                    toast.style.display = 'block';
+                    setTimeout(() => {
+                        toast.style.display = 'none';
+                    }, 2000);
+
+                    fetchMoods();
+                }, 800);
+            } catch(e) {
+                console.error("Gagal simpan mood", e);
+                btn.innerText = "Gagal!";
+                btn.style.background = "red";
+                setTimeout(() => {
+                    btn.innerText = "Simpan";
+                    btn.style.background = "var(--accent)";
+                }, 1500);
+            }
+        });
+
+        // Init
+        fetchMoods();
+    </script>
+</body>
+</html>

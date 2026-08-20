@@ -145,16 +145,45 @@
                 padding: 12px;
             }
             .table-responsive {
-                margin: 0 -16px; /* Negate padding to allow edge-to-edge scroll */
-                padding: 0 16px;
-                -webkit-overflow-scrolling: touch;
+                margin: 0;
+                padding: 0;
             }
-            table {
-                min-width: 500px; /* Make it slightly more compact on mobile */
+            /* Responsive Card Table for Mobile */
+            table, thead, tbody, th, td, tr {
+                display: block;
             }
-            th, td {
-                padding: 10px 12px;
+            thead tr {
+                display: none; /* Hide header on mobile */
+            }
+            tr {
+                margin-bottom: 16px;
+                border: 1px solid #e2e8f0;
+                border-radius: 10px;
+                background: #fff;
+                overflow: hidden;
+            }
+            td {
+                display: flex;
+                flex-direction: column;
+                padding: 10px 14px;
+                border-bottom: 1px solid #f1f5f9;
                 font-size: 13px;
+                text-align: left;
+            }
+            td:last-child {
+                border-bottom: none;
+            }
+            td::before {
+                content: attr(data-label);
+                font-size: 11px;
+                text-transform: uppercase;
+                color: #64748b;
+                font-weight: 700;
+                margin-bottom: 4px;
+            }
+            /* Reset tr hover on mobile */
+            tr:hover td {
+                background-color: transparent;
             }
         }
 
@@ -261,6 +290,29 @@
         <div class="admin-container">
             <div class="admin-header">
                 <div>
+                    <h1 class="admin-title">🔑 PIN Akses Utama (Login)</h1>
+                    <span class="admin-desc">Daftar PIN masuk aplikasi yang dibuat khusus oleh pengguna.</span>
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 25%">Waktu Dibuat</th>
+                            <th style="width: 25%">Nama</th>
+                            <th style="width: 50%">PIN Aktif</th>
+                        </tr>
+                    </thead>
+                    <tbody id="user-pins-body">
+                        <tr><td colspan="3" style="text-align: center; color: #94a3b8; padding: 30px;">Memuat data PIN...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="admin-container">
+            <div class="admin-header">
+                <div>
                     <h1 class="admin-title">📓 Buku Harian Doi (Privat)</h1>
                     <span class="admin-desc">Seluruh catatan rahasia yang disembunyikan.</span>
                 </div>
@@ -327,6 +379,33 @@
                 </table>
             </div>
         </div>
+        
+        <!-- Section: Kapsul Waktu -->
+        <div class="admin-container" style="margin-top: 30px;">
+            <div class="admin-header">
+                <div>
+                    <h1 class="admin-title">⏳ Kapsul Waktu</h1>
+                    <span class="admin-desc">Memantau pesan yang masih terkunci maupun sudah terbuka.</span>
+                </div>
+            </div>
+            
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 20%;">Waktu Dibuat</th>
+                            <th style="width: 15%;">Nama</th>
+                            <th style="width: 25%;">Waktu Buka</th>
+                            <th style="width: 40%;">Isi Pesan</th>
+                        </tr>
+                    </thead>
+                    <tbody id="capsule-admin-body">
+                        <tr><td colspan="4" style="text-align: center; color: #94a3b8; padding: 30px;">Memuat data kapsul...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
     </div>
 
     <script type="module">
@@ -380,12 +459,12 @@
                     }
 
                     tr.innerHTML = `
-                        <td>${timeStr}</td>
-                        <td><strong>${data.enteredName || '-'}</strong></td>
-                        <td><strong>${data.device || '-'}</strong></td>
-                        <td style="font-size: 11px; max-width: 200px;">${data.userAgent || '-'}</td>
-                        <td><span class="status-badge ${statusClass}">${data.locationStatus || '-'}</span></td>
-                        <td>${coordHtml}</td>
+                        <td data-label="Waktu">${timeStr}</td>
+                        <td data-label="Nama Input"><strong>${data.enteredName || '-'}</strong></td>
+                        <td data-label="Perangkat"><strong>${data.device || '-'}</strong></td>
+                        <td data-label="Browser / OS" style="font-size: 11px; max-width: 200px;">${data.userAgent || '-'}</td>
+                        <td data-label="Izin Lokasi"><span class="status-badge ${statusClass}">${data.locationStatus || '-'}</span></td>
+                        <td data-label="Titik Maps">${coordHtml}</td>
                     `;
                     tbody.appendChild(tr);
                 });
@@ -421,15 +500,53 @@
                     const safeText = data.text ? data.text.replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, "<br>") : "-";
 
                     tr.innerHTML = `
-                        <td>${timeStr}</td>
-                        <td><strong>${data.enteredName || '-'}</strong></td>
-                        <td style="font-size: 13px; font-family: 'Inter', sans-serif; line-height: 1.4;">${safeText}</td>
+                        <td data-label="Waktu">${timeStr}</td>
+                        <td data-label="Nama"><strong>${data.enteredName || '-'}</strong></td>
+                        <td data-label="Isi Tulisan" style="font-size: 13px; font-family: 'Inter', sans-serif; line-height: 1.4;">${safeText}</td>
                     `;
                     tbody.appendChild(tr);
                 });
             } catch (e) {
                 console.error("Gagal mengambil catatan:", e);
                 tbody.innerHTML = `<tr><td colspan="3" style="text-align: center; color: red;">Gagal memuat catatan: ${e.message}</td></tr>`;
+            }
+        }
+
+        async function fetchUserPins() {
+            const tbody = document.getElementById('user-pins-body');
+            try {
+                const q = query(collection(db, "user_pins"), orderBy("timestamp", "desc"));
+                const querySnapshot = await getDocs(q);
+                
+                tbody.innerHTML = "";
+                
+                if (querySnapshot.empty) {
+                    tbody.innerHTML = '<tr><td colspan="3" style="text-align: center;">Belum ada PIN akses yang dibuat.</td></tr>';
+                    return;
+                }
+
+                querySnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    const tr = document.createElement('tr');
+                    
+                    let timeStr = "-";
+                    if (data.timestamp) {
+                        const date = data.timestamp.toDate ? data.timestamp.toDate() : new Date(data.timestamp);
+                        timeStr = date.toLocaleString('id-ID');
+                    }
+                    
+                    const safePassword = data.rawPin ? data.rawPin.replace(/</g, "&lt;").replace(/>/g, "&gt;") : `<em style="color:#aaa;">Disembunyikan (Hanya Hash)</em>`;
+
+                    tr.innerHTML = `
+                        <td data-label="Waktu Dibuat">${timeStr}</td>
+                        <td data-label="Nama"><strong>${data.username || '-'}</strong></td>
+                        <td data-label="PIN Aktif" style="font-family: monospace; font-size: 16px; font-weight: bold; color: var(--accent); letter-spacing: 2px;">${safePassword}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (e) {
+                console.error("Gagal mengambil PIN:", e);
+                tbody.innerHTML = `<tr><td colspan="3" style="text-align: center; color: red;">Gagal memuat data: ${e.message}</td></tr>`;
             }
         }
 
@@ -457,9 +574,9 @@
                     }
 
                     tr.innerHTML = `
-                        <td>${timeStr}</td>
-                        <td><strong>${data.enteredName || '-'}</strong></td>
-                        <td style="font-size: 13px; font-weight: bold; color: #d81b60;">${data.password || '-'}</td>
+                        <td data-label="Waktu Dibuat">${timeStr}</td>
+                        <td data-label="Nama"><strong>${data.enteredName || '-'}</strong></td>
+                        <td data-label="Password Aktif" style="font-size: 13px; font-weight: bold; color: #d81b60;">${data.password || '-'}</td>
                     `;
                     tbody.appendChild(tr);
                 });
@@ -507,18 +624,18 @@
                         deletedCount++;
                         const typeLabel = data.isPrivate ? '<span style="color: #d81b60; font-weight: bold;">Privat</span>' : '<span style="color: #1976d2; font-weight: bold;">Publik</span>';
                         tr.innerHTML = `
-                            <td>${timeStr}</td>
-                            <td><strong>${data.enteredName || '-'}</strong></td>
-                            <td>${typeLabel}</td>
-                            <td>${imgHtml}</td>
+                            <td data-label="Waktu Dihapus">${timeStr}</td>
+                            <td data-label="Nama Pengunggah"><strong>${data.enteredName || '-'}</strong></td>
+                            <td data-label="Tipe Foto">${typeLabel}</td>
+                            <td data-label="Pratinjau Foto">${imgHtml}</td>
                         `;
                         deletedBody.appendChild(tr);
                     } else if (data.isPrivate) {
                         privateCount++;
                         tr.innerHTML = `
-                            <td>${timeStr}</td>
-                            <td><strong>${data.enteredName || '-'}</strong></td>
-                            <td>${imgHtml}</td>
+                            <td data-label="Waktu Upload">${timeStr}</td>
+                            <td data-label="Nama Pengunggah"><strong>${data.enteredName || '-'}</strong></td>
+                            <td data-label="Pratinjau Foto">${imgHtml}</td>
                         `;
                         privateBody.appendChild(tr);
                     }
@@ -534,10 +651,63 @@
             }
         }
 
+        async function fetchCapsules() {
+            const tbody = document.getElementById('capsule-admin-body');
+            try {
+                const q = query(collection(db, "time_capsules"), orderBy("timestamp", "desc"));
+                const querySnapshot = await getDocs(q);
+                
+                tbody.innerHTML = "";
+                
+                if (querySnapshot.empty) {
+                    tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 20px;">Belum ada kapsul waktu.</td></tr>';
+                    return;
+                }
+                
+                const now = new Date();
+
+                querySnapshot.forEach(doc => {
+                    const data = doc.data();
+                    const tr = document.createElement('tr');
+                    
+                    let timeStr = "-";
+                    if (data.timestamp) {
+                        const date = data.timestamp.toDate ? data.timestamp.toDate() : new Date(data.timestamp);
+                        timeStr = date.toLocaleString('id-ID', {day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute:'2-digit'});
+                    }
+                    
+                    let unlockStr = "-";
+                    let isUnlocked = false;
+                    if (data.unlockTime) {
+                        const unlockDate = data.unlockTime.toDate ? data.unlockTime.toDate() : new Date(data.unlockTime);
+                        unlockStr = unlockDate.toLocaleString('id-ID', {day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute:'2-digit'});
+                        isUnlocked = now >= unlockDate;
+                    }
+                    
+                    const safeText = data.text ? data.text.replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, "<br>") : "-";
+                    
+                    let statusLabel = isUnlocked ? '<span style="color: #2e7d32; font-weight: bold;">(Terbuka)</span>' : '<span style="color: #c62828; font-weight: bold;">(Terkunci)</span>';
+
+                    tr.innerHTML = `
+                        <td data-label="Waktu Dibuat">${timeStr}</td>
+                        <td data-label="Nama"><strong>${data.enteredName || '-'}</strong></td>
+                        <td data-label="Waktu Buka">${unlockStr} <br>${statusLabel}</td>
+                        <td data-label="Isi Pesan" style="font-size: 13px; font-family: 'Inter', sans-serif; line-height: 1.4;">${safeText}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (e) {
+                console.error("Gagal mengambil kapsul:", e);
+                tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: red;">Gagal memuat data: ${e.message}</td></tr>`;
+            }
+        }
+
         fetchLogs();
         fetchNotes();
         fetchPasswords();
+        fetchUserPins();
         fetchPhotos();
+        fetchCapsules();
     </script>
 </body>
 </html>

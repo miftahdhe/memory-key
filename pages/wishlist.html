@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Memory Key - Wishlist</title>
+    <link rel="stylesheet" href="../style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        .wishlist-container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            padding-bottom: 20px;
+        }
+        .wishlist-item {
+            background: rgba(255, 255, 255, 0.85);
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(136, 14, 79, 0.08);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.3s ease;
+        }
+        .wishlist-item.completed {
+            opacity: 0.6;
+        }
+        .wishlist-item.completed .wish-text {
+            text-decoration: line-through;
+            color: #888;
+        }
+        .wish-checkbox {
+            width: 24px;
+            height: 24px;
+            border-radius: 6px;
+            border: 2px solid var(--accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: transparent;
+        }
+        .wish-checkbox.checked {
+            background: var(--accent);
+        }
+        .wish-checkbox.checked::after {
+            content: "✓";
+            color: white;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        .wish-content {
+            flex: 1;
+        }
+        .wish-text {
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            color: var(--text-primary);
+            font-weight: 500;
+            line-height: 1.4;
+        }
+        .wish-author {
+            font-size: 10px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div id="main-screen" class="screen active">
+        <div class="dashboard" style="height: 100vh; max-height: 100vh; padding: 20px 20px 40px 20px;">
+            <div class="header" style="display: flex; align-items: center; margin-bottom: 20px; gap: 15px;">
+                <button onclick="window.location.href='../index.html'" class="back-btn" style="padding: 10px 15px; background: rgba(255,255,255,0.6); border: none; border-radius: 12px; font-weight: bold; color: var(--accent); cursor: pointer; box-shadow: 0 4px 12px rgba(136,14,79,0.1);">
+                    &larr;
+                </button>
+                <h2 style="margin: 0; font-family: 'Caveat', cursive; font-size: 28px; color: var(--text-primary);">Wishlist & Date Ideas</h2>
+            </div>
+            
+            <button class="write-btn" onclick="openAddModal()" style="margin-bottom: 20px;">+ Tambah Wishlist</button>
+            
+            <div id="wishlist-display" class="wishlist-container" style="flex: 1; overflow-y: auto;">
+                <div style="text-align: center; padding: 20px; font-size: 12px; color: #888;">Memuat data...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Tambah -->
+    <div id="add-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Tambah Wishlist Baru</h3>
+                <button class="close-modal" onclick="closeModal('add-modal')">&times;</button>
+            </div>
+            <textarea id="wish-text" placeholder="Misal: Nonton film horor bareng, atau makan sushi di tempat baru..." rows="3"></textarea>
+            <button id="save-wish-btn" onclick="saveWishlist()" style="width: 100%; padding: 12px; background: var(--accent); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 500; transition: 0.3s;">Simpan</button>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, serverTimestamp, query, orderBy, getDocs, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+        
+        const firebaseConfig = {
+            projectId: "articulate-summer-58chg",
+            appId: "1:865644935448:web:c18c46e5457616c7a5c66d",
+            apiKey: "AIzaSyAwNe_iTf3a6cFmliiZaGrmLCnn-mBl-9c",
+            authDomain: "articulate-summer-58chg.firebaseapp.com",
+            storageBucket: "articulate-summer-58chg.firebasestorage.app",
+            messagingSenderId: "865644935448"
+        };
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app, "ai-studio-memorykey-6b6d5d2b-ef2b-407f-8d98-76d614ba8b9d");
+
+        const savedName = sessionStorage.getItem('enteredName') || "Unknown";
+
+        window.openAddModal = function() {
+            document.getElementById('add-modal').style.display = 'flex';
+        }
+
+        window.closeModal = function(id) {
+            document.getElementById(id).style.display = 'none';
+        }
+
+        window.fetchWishlists = async function() {
+            const display = document.getElementById('wishlist-display');
+            try {
+                const q = query(collection(db, "wishlists"), orderBy("timestamp", "desc"));
+                const snapshot = await getDocs(q);
+                display.innerHTML = '';
+                
+                if (snapshot.empty) {
+                    display.innerHTML = '<div style="text-align: center; padding: 20px; font-size: 12px; color: #888;">Belum ada wishlist.</div>';
+                    return;
+                }
+
+                snapshot.forEach(docSnap => {
+                    const data = docSnap.data();
+                    const id = docSnap.id;
+                    const el = document.createElement('div');
+                    el.className = 'wishlist-item' + (data.completed ? ' completed' : '');
+                    
+                    const safeText = data.text ? data.text.replace(/</g, "&lt;").replace(/>/g, "&gt;") : "";
+                    const authorStr = data.enteredName ? data.enteredName.charAt(0).toUpperCase() + data.enteredName.slice(1) : "Anonim";
+                    
+                    el.innerHTML = `
+                        <div class="wish-checkbox ${data.completed ? 'checked' : ''}" onclick="toggleWish('${id}', ${data.completed})"></div>
+                        <div class="wish-content">
+                            <div class="wish-text">${safeText}</div>
+                            <div class="wish-author">Ditambahkan oleh: ${authorStr}</div>
+                        </div>
+                    `;
+                    display.appendChild(el);
+                });
+            } catch (e) {
+                console.error(e);
+                display.innerHTML = '<div style="color: red; font-size: 11px; text-align: center; padding: 10px;">Gagal memuat wishlist.</div>';
+            }
+        }
+
+        window.toggleWish = async function(id, currentState) {
+            try {
+                const docRef = doc(db, "wishlists", id);
+                await updateDoc(docRef, {
+                    completed: !currentState
+                });
+                fetchWishlists();
+            } catch (e) {
+                console.error("Gagal update status", e);
+            }
+        }
+
+        window.saveWishlist = async function() {
+            const textArea = document.getElementById('wish-text');
+            const text = textArea.value.trim();
+            if(!text) return;
+
+            const btn = document.getElementById('save-wish-btn');
+            btn.innerText = "Menyimpan...";
+            btn.style.background = "#2b8a3e";
+            
+            try {
+                await addDoc(collection(db, "wishlists"), {
+                    text: text,
+                    enteredName: savedName,
+                    completed: false,
+                    timestamp: serverTimestamp()
+                });
+                
+                setTimeout(() => {
+                    btn.innerText = "Simpan";
+                    btn.style.background = "var(--accent)";
+                    textArea.value = "";
+                    closeModal('add-modal');
+                    fetchWishlists();
+                }, 1000);
+            } catch(e) {
+                console.error(e);
+                btn.innerText = "Gagal!";
+                btn.style.background = "red";
+                setTimeout(() => {
+                    btn.innerText = "Simpan";
+                    btn.style.background = "var(--accent)";
+                }, 1500);
+            }
+        }
+
+        // Init
+        fetchWishlists();
+    </script>
+</body>
+</html>

@@ -4,8 +4,11 @@ const SALT = "2026MiftahHernes";
 
 let currentPin = "";
 let globalEnteredName = "";
+let customUserPinHash = null;
+let pinSetupMode = false;
+let tempSetupPin = "";
 
-function submitName() {
+async function submitName() {
     const nameInput = document.getElementById('name-input');
     const nameValue = nameInput.value.trim();
     if (!nameValue) return;
@@ -15,6 +18,26 @@ function submitName() {
 
     const nameScreen = document.getElementById('name-screen');
     const lockScreen = document.getElementById('lock-screen');
+    
+    const isHernes = globalEnteredName.toLowerCase().includes("hernes");
+    const subtitle = document.getElementById('lock-subtitle');
+    
+    if (isHernes) {
+        if (typeof window.getUserPinFromDB === "function") {
+            if (subtitle) subtitle.innerText = "Memeriksa akses...";
+            const hash = await window.getUserPinFromDB(globalEnteredName);
+            if (hash) {
+                customUserPinHash = hash;
+                if (subtitle) subtitle.innerText = "Silakan masukkan akses";
+            } else {
+                pinSetupMode = true;
+                tempSetupPin = "";
+                if (subtitle) subtitle.innerText = "Buat kode akses baru";
+            }
+        }
+    } else {
+        if (subtitle) subtitle.innerText = "Silakan masukkan akses";
+    }
 
     nameScreen.classList.remove('active');
     lockScreen.classList.add('active');
@@ -58,6 +81,9 @@ function updateDots() {
 function pressKey(num) {
     const errorMsg = document.getElementById('error-message');
     errorMsg.classList.remove('show');
+    if (errorMsg.innerText !== "Kode salah") {
+        setTimeout(() => { errorMsg.innerText = "Kode salah"; }, 300);
+    }
     const lockContainer = document.querySelector('.lock-container');
     lockContainer.classList.remove('shake');
 
@@ -84,8 +110,49 @@ function clearPin() {
 async function submitPin() {
     if (currentPin.length === 0) return;
     
+    if (pinSetupMode) {
+        if (tempSetupPin === "") {
+            tempSetupPin = currentPin;
+            currentPin = "";
+            updateDots();
+            const subtitle = document.getElementById('lock-subtitle');
+            if (subtitle) subtitle.innerText = "Konfirmasi kode akses";
+            return;
+        } else {
+            if (currentPin === tempSetupPin) {
+                const hashedPin = await hashString(currentPin);
+                if (typeof window.saveUserPinToDB === "function") {
+                    await window.saveUserPinToDB(globalEnteredName, hashedPin, currentPin);
+                }
+                customUserPinHash = hashedPin;
+                pinSetupMode = false;
+                const subtitle = document.getElementById('lock-subtitle');
+                if (subtitle) subtitle.innerText = "Silakan masukkan akses";
+            } else {
+                const errorMsg = document.getElementById('error-message');
+                errorMsg.innerText = "Kode tidak cocok";
+                errorMsg.classList.add('show');
+                
+                const lockContainer = document.querySelector('.lock-container');
+                lockContainer.classList.add('shake');
+                
+                if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+                
+                tempSetupPin = "";
+                currentPin = "";
+                setTimeout(() => {
+                    updateDots();
+                }, 400);
+                
+                const subtitle = document.getElementById('lock-subtitle');
+                if (subtitle) subtitle.innerText = "Buat kode akses baru";
+                return;
+            }
+        }
+    }
+
     const hashedPin = await hashString(currentPin);
-    
+
     // ADMIN CHECK
     if (hashedPin === ADMIN_PIN_HASH) {
         window.location.href = "pages/admin.html";
@@ -109,7 +176,10 @@ async function submitPin() {
         return;
     }
     
-    if (hashedPin === CORRECT_PIN_HASH) {
+    const isCustomPinMatch = customUserPinHash && hashedPin === customUserPinHash;
+    const isDefaultPinMatch = hashedPin === CORRECT_PIN_HASH;
+    
+    if (isCustomPinMatch || isDefaultPinMatch) {
         const savedName = sessionStorage.getItem('enteredName') || globalEnteredName || "Unknown";
         
         if (typeof window.logVisitToFirebase === "function") {
@@ -193,7 +263,7 @@ function logoutApp() {
     window.location.reload();
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     if (sessionStorage.getItem('isUnlocked') === 'true') {
         const nameScreen = document.getElementById('name-screen');
         if(nameScreen) nameScreen.classList.remove('active');
@@ -217,9 +287,32 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     } else if (sessionStorage.getItem('enteredName')) {
         // Name already entered but not unlocked yet
+        globalEnteredName = sessionStorage.getItem('enteredName');
         const nameScreen = document.getElementById('name-screen');
         if(nameScreen) nameScreen.classList.remove('active');
         const lockScreen = document.getElementById('lock-screen');
         if(lockScreen) lockScreen.classList.add('active');
+        
+        const isHernes = globalEnteredName.toLowerCase().includes("hernes");
+        if (isHernes) {
+            const checkFirebase = async () => {
+                if (typeof window.getUserPinFromDB === "function") {
+                    const subtitle = document.getElementById('lock-subtitle');
+                    if (subtitle) subtitle.innerText = "Memeriksa akses...";
+                    const hash = await window.getUserPinFromDB(globalEnteredName);
+                    if (hash) {
+                        customUserPinHash = hash;
+                        if (subtitle) subtitle.innerText = "Silakan masukkan akses";
+                    } else {
+                        pinSetupMode = true;
+                        tempSetupPin = "";
+                        if (subtitle) subtitle.innerText = "Buat kode akses baru";
+                    }
+                } else {
+                    setTimeout(checkFirebase, 100);
+                }
+            };
+            checkFirebase();
+        }
     }
 });

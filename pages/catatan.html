@@ -214,13 +214,19 @@
                 <!-- Setup Password -->
                 <div id="diary-setup" style="display: none; background: rgba(255,255,255,0.6); padding: 20px; border-radius: 12px;">
                     <p style="font-size: 12px; margin-bottom: 12px; line-height: 1.4; color: var(--text-primary); text-align: center;">Buat password untuk ruanganmu sendiri. Catatanmu tidak akan bisa diakses orang lain.</p>
+                    <div style="background: rgba(220, 38, 38, 0.1); border: 1px solid rgba(220, 38, 38, 0.3); padding: 10px; border-radius: 8px; margin-bottom: 15px;">
+                        <p style="font-size: 11px; color: #b91c1c; margin: 0; font-weight: 600; text-align: center; font-family: 'Inter', sans-serif;">
+                            ⚠️ PERHATIAN: JANGAN SAMPAI LUPA!
+                            <br><span style="font-weight: 400; margin-top: 4px; display: block;">Sandi ini dienkripsi secara privat dan tidak bisa di-reset. Harap ingat baik-baik atau catat, jangan isi asal-asalan.</span>
+                        </p>
+                    </div>
                     <input type="password" id="new-diary-pass" placeholder="Buat Password Baru" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid rgba(136, 14, 79, 0.3); margin-bottom: 10px; box-sizing: border-box; font-family: 'Inter', sans-serif;">
                     <button onclick="setupDiaryPassword()" style="width: 100%; padding: 12px; background: var(--accent); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 500;">Amankan Ruanganku</button>
                 </div>
 
                 <!-- Locked State -->
                 <div id="diary-locked" style="display: none; background: rgba(255,255,255,0.6); padding: 20px; border-radius: 12px;">
-                    <p style="font-size: 12px; margin-bottom: 12px; color: var(--text-primary); text-align: center;">Masukkan password ruang pribadi kamu.</p>
+                    <p style="font-size: 12px; margin-bottom: 12px; color: var(--text-primary); text-align: center;">Masukkan password ruang pribadi kamu.<br><span style="font-size: 10px; color: #880e4f; font-weight: 500;">(Harap masukkan dengan teliti)</span></p>
                     <input type="password" id="check-diary-pass" placeholder="Password" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid rgba(136, 14, 79, 0.3); margin-bottom: 10px; box-sizing: border-box; font-family: 'Inter', sans-serif;">
                     <p id="diary-error" style="color: red; font-size: 11px; display: none; margin-bottom: 10px; text-align: center;">Password salah.</p>
                     <button onclick="unlockDiary()" style="width: 100%; padding: 12px; background: var(--accent); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 500;">Buka Kunci</button>

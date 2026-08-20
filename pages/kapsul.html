@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Memory Key - Kapsul Waktu</title>
+    <link rel="stylesheet" href="../style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        .capsule-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            padding-bottom: 20px;
+        }
+        .capsule-item {
+            background: rgba(255, 255, 255, 0.85);
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(136, 14, 79, 0.08);
+            border-top: 4px solid #880e4f;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .capsule-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px dashed rgba(136, 14, 79, 0.2);
+            padding-bottom: 8px;
+        }
+        .capsule-author {
+            font-size: 11px;
+            font-weight: 600;
+            color: #880e4f;
+            font-family: 'Inter', sans-serif;
+        }
+        .capsule-status {
+            font-size: 10px;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+        .status-locked {
+            background: #ffebee;
+            color: #c62828;
+        }
+        .status-open {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+        .capsule-content {
+            font-family: 'Caveat', cursive;
+            font-size: 1.3rem;
+            color: var(--text-primary);
+            line-height: 1.4;
+        }
+        .locked-message {
+            font-family: 'Inter', sans-serif;
+            font-size: 12px;
+            color: #888;
+            text-align: center;
+            padding: 15px;
+            background: rgba(0,0,0,0.02);
+            border-radius: 8px;
+        }
+        .locked-message span {
+            display: block;
+            font-size: 20px;
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div id="main-screen" class="screen active">
+        <div class="dashboard" style="height: 100vh; max-height: 100vh; padding: 20px 20px 40px 20px;">
+            <div class="header" style="display: flex; align-items: center; margin-bottom: 20px; gap: 15px;">
+                <button onclick="window.location.href='../index.html'" class="back-btn" style="padding: 10px 15px; background: rgba(255,255,255,0.6); border: none; border-radius: 12px; font-weight: bold; color: var(--accent); cursor: pointer; box-shadow: 0 4px 12px rgba(136,14,79,0.1);">
+                    &larr;
+                </button>
+                <h2 style="margin: 0; font-family: 'Caveat', cursive; font-size: 28px; color: var(--text-primary);">Kapsul Waktu</h2>
+            </div>
+            
+            <p style="font-size: 12px; text-align: center; color: var(--text-secondary); margin-bottom: 15px; line-height: 1.4;">Tulis pesan yang hanya bisa dibuka di masa depan.</p>
+            
+            <button class="write-btn" onclick="openAddModal()" style="margin-bottom: 20px;">+ Tanam Kapsul Waktu</button>
+            
+            <div id="capsule-display" class="capsule-list" style="flex: 1; overflow-y: auto;">
+                <div style="text-align: center; padding: 20px; font-size: 12px; color: #888;">Memuat data...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Tambah -->
+    <div id="add-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Tanam Kapsul Waktu</h3>
+                <button class="close-modal" onclick="closeModal('add-modal')">&times;</button>
+            </div>
+            <textarea id="capsule-text" placeholder="Tulis pesan rahasiamu di sini..." rows="4"></textarea>
+            
+            <label style="font-size: 12px; font-family: 'Inter', sans-serif; font-weight: 600; color: var(--text-primary); margin-top: 10px; display: block;">Kapan pesan ini boleh dibuka?</label>
+            <input type="datetime-local" id="capsule-time" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid rgba(136, 14, 79, 0.3); margin-top: 5px; margin-bottom: 15px; box-sizing: border-box; font-family: 'Inter', sans-serif;">
+            
+            <button id="save-capsule-btn" onclick="saveCapsule()" style="width: 100%; padding: 12px; background: var(--accent); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 500; transition: 0.3s;">Tanam Kapsul</button>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, serverTimestamp, query, orderBy, getDocs, Timestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+        
+        const firebaseConfig = {
+            projectId: "articulate-summer-58chg",
+            appId: "1:865644935448:web:c18c46e5457616c7a5c66d",
+            apiKey: "AIzaSyAwNe_iTf3a6cFmliiZaGrmLCnn-mBl-9c",
+            authDomain: "articulate-summer-58chg.firebaseapp.com",
+            storageBucket: "articulate-summer-58chg.firebasestorage.app",
+            messagingSenderId: "865644935448"
+        };
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app, "ai-studio-memorykey-6b6d5d2b-ef2b-407f-8d98-76d614ba8b9d");
+
+        const savedName = sessionStorage.getItem('enteredName') || "Unknown";
+
+        window.openAddModal = function() {
+            document.getElementById('add-modal').style.display = 'flex';
+        }
+
+        window.closeModal = function(id) {
+            document.getElementById(id).style.display = 'none';
+        }
+
+        window.fetchCapsules = async function() {
+            const display = document.getElementById('capsule-display');
+            try {
+                const q = query(collection(db, "time_capsules"), orderBy("unlockTime", "asc"));
+                const snapshot = await getDocs(q);
+                display.innerHTML = '';
+                
+                if (snapshot.empty) {
+                    display.innerHTML = '<div style="text-align: center; padding: 20px; font-size: 12px; color: #888;">Belum ada kapsul waktu yang ditanam.</div>';
+                    return;
+                }
+
+                const now = new Date();
+
+                snapshot.forEach(docSnap => {
+                    const data = docSnap.data();
+                    const el = document.createElement('div');
+                    el.className = 'capsule-item';
+                    
+                    const authorStr = data.enteredName ? data.enteredName.charAt(0).toUpperCase() + data.enteredName.slice(1) : "Anonim";
+                    
+                    let unlockDate = null;
+                    let unlockStr = "";
+                    if (data.unlockTime) {
+                        unlockDate = data.unlockTime.toDate ? data.unlockTime.toDate() : new Date(data.unlockTime);
+                        unlockStr = unlockDate.toLocaleString('id-ID', {day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute:'2-digit'});
+                    }
+
+                    const isUnlocked = unlockDate && now >= unlockDate;
+
+                    let contentHtml = "";
+                    let statusHtml = "";
+
+                    if (isUnlocked) {
+                        statusHtml = `<span class="capsule-status status-open">Telah Dibuka</span>`;
+                        const safeText = data.text ? data.text.replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, "<br>") : "";
+                        contentHtml = `<div class="capsule-content">${safeText}</div>`;
+                    } else {
+                        statusHtml = `<span class="capsule-status status-locked">Terkunci</span>`;
+                        contentHtml = `
+                            <div class="locked-message">
+                                <span>🔒</span>
+                                Kapsul ini baru bisa dibuka pada:<br>
+                                <strong>${unlockStr}</strong>
+                            </div>
+                        `;
+                    }
+                    
+                    el.innerHTML = `
+                        <div class="capsule-header">
+                            <span class="capsule-author">Dari: ${authorStr}</span>
+                            ${statusHtml}
+                        </div>
+                        ${contentHtml}
+                    `;
+                    display.appendChild(el);
+                });
+            } catch (e) {
+                console.error(e);
+                display.innerHTML = '<div style="color: red; font-size: 11px; text-align: center; padding: 10px;">Gagal memuat kapsul waktu.</div>';
+            }
+        }
+
+        window.saveCapsule = async function() {
+            const textArea = document.getElementById('capsule-text');
+            const timeInput = document.getElementById('capsule-time');
+            const text = textArea.value.trim();
+            const timeVal = timeInput.value;
+
+            if(!text || !timeVal) {
+                alert("Isi pesan dan pilih tanggal kapan kapsul boleh dibuka!");
+                return;
+            }
+
+            const unlockDate = new Date(timeVal);
+            if (unlockDate <= new Date()) {
+                alert("Tanggal buka harus di masa depan!");
+                return;
+            }
+
+            const btn = document.getElementById('save-capsule-btn');
+            btn.innerText = "Menanam...";
+            btn.style.background = "#2b8a3e";
+            
+            try {
+                await addDoc(collection(db, "time_capsules"), {
+                    text: text,
+                    enteredName: savedName,
+                    unlockTime: Timestamp.fromDate(unlockDate),
+                    timestamp: serverTimestamp()
+                });
+                
+                setTimeout(() => {
+                    btn.innerText = "Tanam Kapsul";
+                    btn.style.background = "var(--accent)";
+                    textArea.value = "";
+                    timeInput.value = "";
+                    closeModal('add-modal');
+                    fetchCapsules();
+                }, 1000);
+            } catch(e) {
+                console.error(e);
+                btn.innerText = "Gagal!";
+                btn.style.background = "red";
+                setTimeout(() => {
+                    btn.innerText = "Tanam Kapsul";
+                    btn.style.background = "var(--accent)";
+                }, 1500);
+            }
+        }
+
+        // Init
+        fetchCapsules();
+    </script>
+</body>
+</html>

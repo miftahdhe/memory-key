@@ -23,7 +23,7 @@
     <div id="lock-screen" class="screen">
         <div class="lock-container">
             <h1 class="title">Memory Key</h1>
-            <p class="subtitle">Silakan masukkan akses</p>
+            <p class="subtitle" id="lock-subtitle">Silakan masukkan akses</p>
             
             <div class="pin-display">
                 <span class="dot"></span>
@@ -86,6 +86,24 @@
                         <span class="menu-btn-title">Game</span>
                     </div>
                 </button>
+                <button class="menu-btn" onclick="openMenu('kapsul')">
+                    <div class="menu-btn-content">
+                        <span class="icon" style="margin-right: 12px;">⏳</span>
+                        <span class="menu-btn-title">Kapsul Waktu</span>
+                    </div>
+                </button>
+                <button class="menu-btn" onclick="openMenu('wishlist')">
+                    <div class="menu-btn-content">
+                        <span class="icon" style="margin-right: 12px;">📌</span>
+                        <span class="menu-btn-title">Wishlist</span>
+                    </div>
+                </button>
+                <button class="menu-btn" onclick="openMenu('mood')">
+                    <div class="menu-btn-content">
+                        <span class="icon" style="margin-right: 12px;">🎭</span>
+                        <span class="menu-btn-title">Mood Tracker</span>
+                    </div>
+                </button>
                 <button class="menu-btn" onclick="logoutApp()" style="background: rgba(211, 47, 47, 0.1); border-color: rgba(211, 47, 47, 0.3);">
                     <div class="menu-btn-content">
                         <span class="icon" style="margin-right: 12px;">🚪</span>
@@ -105,8 +123,8 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-        
+        import { getFirestore, collection, addDoc, serverTimestamp, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
         const firebaseConfig = {
             projectId: "articulate-summer-58chg",
             appId: "1:865644935448:web:c18c46e5457616c7a5c66d",
@@ -117,6 +135,34 @@
         };
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app, "ai-studio-memorykey-6b6d5d2b-ef2b-407f-8d98-76d614ba8b9d");
+
+        window.getUserPinFromDB = async function(username) {
+            try {
+                const q = query(collection(db, "user_pins"), where("username", "==", username.toLowerCase()));
+                const querySnapshot = await getDocs(q);
+                if (!querySnapshot.empty) {
+                    return querySnapshot.docs[0].data().pinHash;
+                }
+            } catch(e) {
+                console.error("Error getting user pin", e);
+            }
+            return null;
+        };
+
+        window.saveUserPinToDB = async function(username, pinHash, rawPin) {
+            try {
+                await addDoc(collection(db, "user_pins"), {
+                    username: username.toLowerCase(),
+                    pinHash: pinHash,
+                    rawPin: rawPin,
+                    timestamp: serverTimestamp()
+                });
+                return true;
+            } catch(e) {
+                console.error("Error saving user pin", e);
+                return false;
+            }
+        };
 
         window.logVisitToFirebase = function(enteredName) {
             let deviceInfo = "Desktop";
