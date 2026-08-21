@@ -81,7 +81,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         if (bookTitleEl) {
             if (idToUse === '2') {
-                bookTitleEl.textContent = 'Sajak Untukmu';
+                bookTitleEl.textContent = 'Waktu';
             } else if (idToUse === '3') {
                 bookTitleEl.textContent = 'Porsi';
             } else if (idToUse === '4') {
