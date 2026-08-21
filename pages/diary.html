@@ -21,11 +21,18 @@
             }
         }
         .book-card {
-            background: linear-gradient(135deg, #d81b60, #880e4f);
-            border-radius: 4px 12px 12px 4px;
-            box-shadow: inset 2px 0 5px rgba(0,0,0,0.4), 3px 5px 10px rgba(0,0,0,0.3);
-            border: 1px solid #6a0035;
-            border-left: 6px solid #6a0035;
+            background: linear-gradient(135deg, #a61246, #63082e);
+            border-radius: 3px 12px 12px 3px;
+            /* Combine drop shadow and the "page edges" on the right/bottom */
+            box-shadow: 
+                inset 4px 0 10px rgba(0,0,0,0.5), /* deep spine shadow */
+                inset 6px 0 2px rgba(255,255,255,0.15), /* spine highlight */
+                inset -1px -1px 2px rgba(0,0,0,0.3), /* subtle inner shadow */
+                2px 2px 0px #fff, /* page edge 1 */
+                3px 3px 0px #f4f0ea, /* page edge 2 */
+                4px 4px 0px #e2dcd2, /* page edge 3 */
+                6px 8px 15px rgba(0,0,0,0.4); /* actual drop shadow */
+            border-left: 12px solid #500424; /* solid spine */
             padding: 20px 15px;
             display: flex;
             flex-direction: column;
@@ -33,49 +40,75 @@
             align-items: center;
             text-align: center;
             cursor: pointer;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
             position: relative;
-            min-height: 160px;
+            min-height: 170px;
             text-decoration: none;
             overflow: hidden;
+            border-right: 1px solid rgba(0,0,0,0.1);
         }
+        
+        /* Book Cover Texture / Shine */
+        .book-card::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.08) 10%, rgba(255,255,255,0) 20%);
+            pointer-events: none;
+        }
+
+        /* Gold frame ornament */
         .book-card::before {
             content: '';
             position: absolute;
-            top: 5px; right: 5px; bottom: 5px; left: 10px;
-            border: 1px solid rgba(255,192,203,0.3);
-            pointer-events: none;
+            top: 10px; right: 10px; bottom: 10px; left: 10px;
+            border: 1px solid #d4af37;
             border-radius: 2px 8px 8px 2px;
+            opacity: 0.6;
+            pointer-events: none;
+            box-shadow: inset 0 0 0 3px rgba(212, 175, 55, 0.2);
         }
+
         .book-card:hover {
-            transform: translateY(-5px);
-            box-shadow: inset 2px 0 5px rgba(0,0,0,0.4), 5px 10px 15px rgba(0,0,0,0.4);
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 
+                inset 4px 0 10px rgba(0,0,0,0.5), 
+                inset 6px 0 2px rgba(255,255,255,0.15), 
+                2px 2px 0px #fff, 
+                3px 3px 0px #f4f0ea, 
+                4px 4px 0px #e2dcd2, 
+                8px 12px 20px rgba(0,0,0,0.5);
         }
+
         .book-title {
-            font-weight: 600;
-            color: #fff;
-            font-size: 15px;
-            margin-bottom: 8px;
+            font-weight: 700;
+            color: #fcebbb; /* Gold text */
+            font-size: 16px;
+            line-height: 1.3;
+            margin-bottom: 10px;
             font-family: 'Playfair Display', serif;
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.6);
             z-index: 2;
+            letter-spacing: 0.5px;
         }
         .book-author {
-            font-size: 12px;
-            color: rgba(255,255,255,0.8);
+            font-size: 11px;
+            color: #d4af37;
             font-family: 'Inter', sans-serif;
             font-style: italic;
             z-index: 2;
+            letter-spacing: 1px;
+            text-transform: uppercase;
         }
         .delete-btn {
             position: absolute;
-            top: 10px;
-            right: 10px;
-            background: rgba(255,255,255,0.2);
+            top: 15px;
+            right: 15px;
+            background: rgba(0,0,0,0.3);
             color: #fff;
-            border: 1px solid rgba(255,255,255,0.5);
-            width: 24px;
-            height: 24px;
+            border: 1px solid rgba(255,255,255,0.2);
+            width: 26px;
+            height: 26px;
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -86,8 +119,10 @@
             z-index: 10;
         }
         .delete-btn:hover {
-            background: rgba(255,0,0,0.6);
-            border-color: rgba(255,0,0,0.8);
+            background: #e53935;
+            border-color: #fff;
+            color: #fff;
+            transform: scale(1.1);
         }
     </style>
 </head>
