@@ -1,22 +1,9 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://ai.google.dev/static/site-assets/images/share-ais-513315318.png" />
-</div>
+Di suatu daerah di Sumatera Utara, hiduplah seorang pemuda. Suatu hari ia pergi memancing. Setelah cukup lama ia melemparkan pancing, tak seekor ikan pun yang menyentuh umpannya. Pemuda itu mencoba sekali melemparkan pancingnya agak ke tengah sungai. Tiba tiba seekor ikan menyambarnya. Dengan susah payah pemuda itu menarik pancingnya hingga tampaklah seekor ikan besar tergantung di ujung tali pancingnya.
 
-# Run and deploy your AI Studio app
+Dengan senang hati ia bergegas pulang ke rumah dan langsung membawa ikan itu ke dapur. Ketika hendak memanggang ikan itu, ternyata persediaan kayu bakar telah habis, la menuju kamar untuk mengambil persediaan bayu bakar. Saat kembali ke dapur, ikannya lenyap dan berganti dengan beberapa keping uang emas.
 
-This contains everything you need to run your app locally.
+Dengan perasaan bingung, pemuda itu mengambil kepingan uang emas itu dan hendak menyimpannya di kamar. Betapa terkejutnya saat membuka pintu kamar, ia melihat seorang gadis yang sangat cantik yang ternyata adalah jelmaan dari ikan tadi. Gadis itu meminta untuk diperbolehkan tinggal di rumah itu. Akhirnya, mereka pun menikah dengan syarat sang pemuda bersumpah tidak akan pernah mengungkit asul-usulnya.
 
-View your app in AI Studio: https://ai.studio/apps/5e17dbd1-3707-4f2d-a67e-a25035e374b9
+Setelah menikah, mereka dikaruniai seorang anak laki-laki. Suatu hari, ibunya menyuruh anak itu mengantarkan bungkusan nasi dan ikan panggang untuk ayahnya di ladang. Di tengah perjalanan, tiba-tiba anak itu merasa lapar, la pun berhenti dan memakan sebagian isinya. Sesampainya di ladang, ia segera menyerahkan bungkusan itu kepada ayahnya. Sang ayah pun murka melihat isinya. la murka sambil berkata, “Dasar anak keturunan ikan!” Anak itu pun pulang dan mengadukan kejadian itu pada ibunya.
 
-## Run Locally
-
-**Prerequisites:**  [Android Studio](https://developer.android.com/studio)
-
-
-1. Open Android Studio
-2. Select **Open** and choose the directory containing this project
-3. Allow Android Studio to fix any incompatibilities as it imports the project.
-4. Create a file named `.env` in the project directory and set `GEMINI_API_KEY` in that file to your Gemini API key (see `.env.example` for an example)
-5. Remove this line from the app's `build.gradle.kts` file: `signingConfig = signingConfigs.getByName("debugConfig")`
-6. Run the app on an emulator or physical device
-7. If you have already published your app in AI Studio, please [request upload key reset](https://support.google.com/googleplay/android-developer/answer/9842756#zippy=%2Crequest-an-upload-key-reset) in Google Play Console.
+Sang ibu pun sedih. Seketika itu pula sang ibu menyuruh anaknya agar naik ke puncak bukit dan la sendiri segera berlari menuju ke sungai. Saat ia berada di tepi sungai, cuaca yang semula cerah, tiba-tiba berubah menjadi gelap gulita. Langit bergemuruh disusul petir menyambar-nyambar disertai hujan yang sangat deras. Pada saat itulah, sang ibu segera melompat ke dalam sungai dan tiba-tiba berubah menjadi seekor ikan besar. Dalam sekejap, sungai itu banjir, menyebabkan genangan air yang luas dan akhirnya berubah menjadi sebuah danau yang sangat besar. Oleh masyarakat setempat, danau itu dinamakan Danau Toba.
