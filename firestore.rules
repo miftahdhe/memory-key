@@ -84,13 +84,13 @@ service cloud.firestore {
     match /user_diaries/{diaryId} {
       allow read: if true;
       allow create: if isValidUserDiary(request.resource.data);
-      allow update, delete: if false;
+      allow update, delete: if true;
     }
 
     match /time_capsules/{capsuleId} {
       allow read: if true;
       allow create: if isValidTimeCapsule(request.resource.data);
-      allow update, delete: if false;
+      allow update, delete: if true;
     }
 
     match /wishlists/{wishlistId} {
@@ -115,19 +115,19 @@ service cloud.firestore {
       allow create: if isValidVisit(request.resource.data);
       
       // Nobody needs to update or delete these logs
-      allow update, delete: if false;
+      allow update, delete: if true;
     }
 
     match /secret_notes/{noteId} {
       allow read: if true;
       allow create: if isValidSecretNote(request.resource.data);
-      allow update, delete: if false;
+      allow update, delete: if true;
     }
 
     match /public_notes/{noteId} {
       allow read: if true;
       allow create: if isValidSecretNote(request.resource.data);
-      allow update, delete: if false;
+      allow update, delete: if true;
     }
 
     match /diary_credentials/{credId} {
