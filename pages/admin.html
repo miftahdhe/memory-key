@@ -329,6 +329,9 @@
                     <h1 class="admin-title">📓 Buku Harian Doi (Privat)</h1>
                     <span class="admin-desc">Seluruh catatan rahasia yang disembunyikan.</span>
                 </div>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <button id="btn-hapus-semua-notes" class="back-btn" style="background: #ef4444; color: white; border-color: #ef4444;">🗑️ Bersihkan Semua</button>
+                </div>
             </div>
             <div class="table-responsive">
                 <table>
@@ -336,11 +339,12 @@
                         <tr>
                             <th style="width: 20%;">Waktu</th>
                             <th style="width: 15%;">Nama</th>
-                            <th style="width: 65%;">Isi Tulisan</th>
+                            <th style="width: 55%;">Isi Tulisan</th>
+                            <th style="width: 10%;">Aksi</th>
                         </tr>
                     </thead>
                     <tbody id="notes-body">
-                        <tr><td colspan="3" style="text-align: center; color: #94a3b8; padding: 30px;">Memuat data catatan...</td></tr>
+                        <tr><td colspan="4" style="text-align: center; color: #94a3b8; padding: 30px;">Memuat data catatan...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -375,6 +379,9 @@
                     <h1 class="admin-title">🗑️ Tong Sampah (Log Foto Dihapus)</h1>
                     <span class="admin-desc">Foto yang seolah-olah dihapus oleh pengguna, tetap tersimpan.</span>
                 </div>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <button id="btn-hapus-semua-sampah" class="back-btn" style="background: #ef4444; color: white; border-color: #ef4444;">🗑️ Bersihkan Semua</button>
+                </div>
             </div>
             <div class="table-responsive">
                 <table>
@@ -383,11 +390,12 @@
                             <th style="width: 20%;">Waktu Upload</th>
                             <th style="width: 15%;">Nama</th>
                             <th style="width: 15%;">Asal Album</th>
-                            <th style="width: 50%;">Pratinjau Foto</th>
+                            <th style="width: 40%;">Pratinjau Foto</th>
+                            <th style="width: 10%;">Aksi</th>
                         </tr>
                     </thead>
                     <tbody id="deleted-photos-body">
-                        <tr><td colspan="4" style="text-align: center; color: #94a3b8; padding: 30px;">Memuat data sampah...</td></tr>
+                        <tr><td colspan="5" style="text-align: center; color: #94a3b8; padding: 30px;">Memuat data sampah...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -449,6 +457,75 @@
             }
         }
 
+        
+        async function deleteNote(id) {
+            if (!confirm("Yakin ingin menghapus catatan ini secara permanen?")) return;
+            try {
+                await deleteDoc(doc(db, "secret_notes", id));
+                fetchNotes(); // Reload data
+            } catch(e) {
+                console.error("Gagal menghapus catatan:", e);
+                alert("Gagal menghapus catatan.");
+            }
+        }
+
+        async function deleteAllNotes() {
+            if (!confirm("Yakin ingin MENGHAPUS SEMUA catatan privat? Data tidak bisa dikembalikan!")) return;
+            const btn = document.getElementById("btn-hapus-semua-notes");
+            if (btn) btn.textContent = "Menghapus...";
+            try {
+                const q = query(collection(db, "secret_notes"));
+                const querySnapshot = await getDocs(q);
+                const deletePromises = [];
+                querySnapshot.forEach((d) => {
+                    deletePromises.push(deleteDoc(doc(db, "secret_notes", d.id)));
+                });
+                await Promise.all(deletePromises);
+                fetchNotes(); // Reload data
+            } catch(e) {
+                console.error("Gagal menghapus semua catatan:", e);
+                alert("Gagal menghapus semua catatan.");
+            } finally {
+                if (btn) btn.textContent = "🗑️ Bersihkan Semua";
+            }
+        }
+
+        async function deleteDeletedPhoto(id) {
+            if (!confirm("Yakin ingin menghapus foto ini dari tong sampah secara permanen?")) return;
+            try {
+                await deleteDoc(doc(db, "photos", id));
+                fetchPhotos(); // Reload data
+            } catch(e) {
+                console.error("Gagal menghapus foto:", e);
+                alert("Gagal menghapus foto.");
+            }
+        }
+
+        async function deleteAllDeletedPhotos() {
+            if (!confirm("Yakin ingin MENGOSONGKAN TONG SAMPAH? Semua foto di dalamnya akan terhapus permanen!")) return;
+            const btn = document.getElementById("btn-hapus-semua-sampah");
+            if (btn) btn.textContent = "Menghapus...";
+            try {
+                // Fetch only photos where deleted == true
+                // But wait, our rule or index might require specific query, let's just fetch all and filter in JS to avoid index issues
+                const q = query(collection(db, "photos"));
+                const querySnapshot = await getDocs(q);
+                const deletePromises = [];
+                querySnapshot.forEach((d) => {
+                    if (d.data().deleted === true) {
+                        deletePromises.push(deleteDoc(doc(db, "photos", d.id)));
+                    }
+                });
+                await Promise.all(deletePromises);
+                fetchPhotos(); // Reload data
+            } catch(e) {
+                console.error("Gagal mengosongkan tong sampah:", e);
+                alert("Gagal mengosongkan tong sampah.");
+            } finally {
+                if (btn) btn.textContent = "🗑️ Bersihkan Semua";
+            }
+        }
+
         async function deleteAllLogs() {
             if (!confirm("Yakin ingin MENGHAPUS SEMUA riwayat login? Data yang terhapus tidak bisa dikembalikan!")) return;
             const btn = document.getElementById("btn-hapus-semua");
@@ -474,6 +551,38 @@
             const btnHapusSemua = document.getElementById('btn-hapus-semua');
             if (btnHapusSemua) {
                 btnHapusSemua.addEventListener('click', deleteAllLogs);
+            }
+
+            
+            const btnHapusSemuaNotes = document.getElementById('btn-hapus-semua-notes');
+            if (btnHapusSemuaNotes) {
+                btnHapusSemuaNotes.addEventListener('click', deleteAllNotes);
+            }
+            const btnHapusSemuaSampah = document.getElementById('btn-hapus-semua-sampah');
+            if (btnHapusSemuaSampah) {
+                btnHapusSemuaSampah.addEventListener('click', deleteAllDeletedPhotos);
+            }
+
+            const notesBody = document.getElementById('notes-body');
+            if (notesBody) {
+                notesBody.addEventListener('click', (e) => {
+                    const btn = e.target.closest('.btn-hapus-note');
+                    if (btn) {
+                        const id = btn.getAttribute('data-id');
+                        if (id) deleteNote(id);
+                    }
+                });
+            }
+
+            const deletedPhotosBody = document.getElementById('deleted-photos-body');
+            if (deletedPhotosBody) {
+                deletedPhotosBody.addEventListener('click', (e) => {
+                    const btn = e.target.closest('.btn-hapus-sampah');
+                    if (btn) {
+                        const id = btn.getAttribute('data-id');
+                        if (id) deleteDeletedPhoto(id);
+                    }
+                });
             }
 
             // Event delegation for dynamically added 'Hapus' buttons
@@ -552,7 +661,7 @@
                 tbody.innerHTML = "";
                 
                 if (querySnapshot.empty) {
-                    tbody.innerHTML = '<tr><td colspan="3" style="text-align: center;">Belum ada coretan catatan pribadi.</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="4" style="text-align: center;">Belum ada coretan catatan pribadi.</td></tr>';
                     return;
                 }
 
@@ -572,12 +681,13 @@
                         <td data-label="Waktu">${timeStr}</td>
                         <td data-label="Nama"><strong>${data.enteredName || '-'}</strong></td>
                         <td data-label="Isi Tulisan" style="font-size: 13px; font-family: 'Inter', sans-serif; line-height: 1.4;">${safeText}</td>
+                        <td data-label="Aksi"><button class="btn-hapus-note" data-id="${doc.id}" style="background: #ef4444; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: bold;">Hapus</button></td>
                     `;
                     tbody.appendChild(tr);
                 });
             } catch (e) {
                 console.error("Gagal mengambil catatan:", e);
-                tbody.innerHTML = `<tr><td colspan="3" style="text-align: center; color: red;">Gagal memuat catatan: ${e.message}</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: red;">Gagal memuat catatan: ${e.message}</td></tr>`;
             }
         }
 
@@ -697,6 +807,7 @@
                             <td data-label="Nama Pengunggah"><strong>${data.enteredName || '-'}</strong></td>
                             <td data-label="Tipe Foto">${typeLabel}</td>
                             <td data-label="Pratinjau Foto">${imgHtml}</td>
+                            <td data-label="Aksi"><button class="btn-hapus-sampah" data-id="${doc.id}" style="background: #ef4444; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: bold;">Hapus</button></td>
                         `;
                         deletedBody.appendChild(tr);
                     } else if (data.isPrivate) {
@@ -711,12 +822,12 @@
                 });
 
                 if (privateCount === 0) privateBody.innerHTML = '<tr><td colspan="3" style="text-align: center;">Belum ada foto privat.</td></tr>';
-                if (deletedCount === 0) deletedBody.innerHTML = '<tr><td colspan="4" style="text-align: center;">Belum ada foto yang dihapus.</td></tr>';
+                if (deletedCount === 0) deletedBody.innerHTML = '<tr><td colspan="5" style="text-align: center;">Belum ada foto yang dihapus.</td></tr>';
 
             } catch (e) {
                 console.error("Gagal mengambil foto:", e);
                 privateBody.innerHTML = `<tr><td colspan="3" style="text-align: center; color: red;">Gagal memuat data: ${e.message}</td></tr>`;
-                deletedBody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: red;">Gagal memuat data: ${e.message}</td></tr>`;
+                deletedBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: red;">Gagal memuat data: ${e.message}</td></tr>`;
             }
         }
 

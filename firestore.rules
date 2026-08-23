@@ -141,7 +141,7 @@ service cloud.firestore {
       allow read: if true;
       allow create: if isValidPhoto(request.resource.data);
       allow update: if true; // to allow soft deletion (updating deleted field)
-      allow delete: if false; // real deletion is blocked
+      allow delete: if true;
     }
   }
 }
