@@ -69,6 +69,9 @@
         }
         .table-responsive {
             overflow-x: auto;
+            max-height: 450px;
+            overflow-y: auto;
+            border-bottom: 1px solid #e2e8f0;
         }
         table {
             width: 100%;
@@ -147,10 +150,15 @@
             .table-responsive {
                 margin: 0;
                 padding: 0;
+                max-height: 60vh;
+                overflow-y: auto;
             }
             /* Responsive Card Table for Mobile */
             table, thead, tbody, th, td, tr {
                 display: block;
+            }
+            table {
+                min-width: auto; /* Fix horizontal overflow */
             }
             thead tr {
                 display: none; /* Hide header on mobile */
@@ -242,7 +250,10 @@
                     <h1 class="admin-title">📍 Log Pengunjung & Lokasi</h1>
                     <span class="admin-desc">Merekam riwayat akses dan titik koordinat pengguna.</span>
                 </div>
-                <a href="../index.html" class="back-btn">Kembali</a>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <button id="btn-hapus-semua"  class="back-btn" style="background: #ef4444; color: white; border-color: #ef4444;">🗑️ Bersihkan Semua</button>
+                    <a href="../index.html" class="back-btn">Kembali</a>
+                </div>
             </div>
 
             <div class="table-responsive">
@@ -256,10 +267,11 @@
                             <th style="width: 25%">Browser / OS</th>
                             <th style="width: 15%">Izin Lokasi</th>
                             <th style="width: 15%">Titik Maps</th>
+                            <th style="width: 10%">Aksi</th>
                         </tr>
                     </thead>
                     <tbody id="log-body">
-                        <tr><td colspan="7" style="text-align: center; color: #94a3b8; padding: 30px;">Memuat riwayat login...</td></tr>
+                        <tr><td colspan="8" style="text-align: center; color: #94a3b8; padding: 30px;">Memuat riwayat login...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -411,7 +423,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-        import { getFirestore, collection, query, orderBy, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+        import { getFirestore, collection, query, orderBy, getDocs, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
         
         const firebaseConfig = {
             projectId: "articulate-summer-58chg",
@@ -424,6 +436,60 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app, "ai-studio-memorykey-6b6d5d2b-ef2b-407f-8d98-76d614ba8b9d");
 
+        
+        
+        async function deleteLog(id) {
+            if (!confirm("Yakin ingin menghapus riwayat ini?")) return;
+            try {
+                await deleteDoc(doc(db, "visits", id));
+                fetchLogs(); // Reload data
+            } catch(e) {
+                console.error("Gagal menghapus:", e);
+                alert("Gagal menghapus data.");
+            }
+        }
+
+        async function deleteAllLogs() {
+            if (!confirm("Yakin ingin MENGHAPUS SEMUA riwayat login? Data yang terhapus tidak bisa dikembalikan!")) return;
+            const btn = document.getElementById("btn-hapus-semua");
+            if (btn) btn.textContent = "Menghapus...";
+            try {
+                const q = query(collection(db, "visits"));
+                const querySnapshot = await getDocs(q);
+                const deletePromises = [];
+                querySnapshot.forEach((d) => {
+                    deletePromises.push(deleteDoc(doc(db, "visits", d.id)));
+                });
+                await Promise.all(deletePromises);
+                fetchLogs(); // Reload data
+            } catch(e) {
+                console.error("Gagal menghapus semua:", e);
+                alert("Gagal menghapus semua data.");
+            } finally {
+                if (btn) btn.textContent = "🗑️ Bersihkan Semua";
+            }
+        }
+
+        // Attach listeners when DOM is ready
+            const btnHapusSemua = document.getElementById('btn-hapus-semua');
+            if (btnHapusSemua) {
+                btnHapusSemua.addEventListener('click', deleteAllLogs);
+            }
+
+            // Event delegation for dynamically added 'Hapus' buttons
+            const logBody = document.getElementById('log-body');
+            if (logBody) {
+                logBody.addEventListener('click', (e) => {
+                    const btn = e.target.closest('.btn-hapus-log');
+                    if (btn) {
+                        const id = btn.getAttribute('data-id');
+                        if (id) {
+                            deleteLog(id);
+                        }
+                    }
+                });
+            }
+
         async function fetchLogs() {
             const tbody = document.getElementById('log-body');
             try {
@@ -433,7 +499,7 @@
                 tbody.innerHTML = "";
                 
                 if (querySnapshot.empty) {
-                    tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">Belum ada data pengunjung.</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="8" style="text-align: center;">Belum ada data pengunjung.</td></tr>';
                     return;
                 }
 
@@ -467,6 +533,7 @@
                         <td data-label="Browser / OS" style="font-size: 11px; max-width: 200px;">${data.userAgent || '-'}</td>
                         <td data-label="Izin Lokasi"><span class="status-badge ${statusClass}">${data.locationStatus || '-'}</span></td>
                         <td data-label="Titik Maps">${coordHtml}</td>
+                        <td data-label="Aksi"><button class="btn-hapus-log" data-id="${doc.id}" style="background: #ef4444; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: bold;">Hapus</button></td>
                     `;
                     tbody.appendChild(tr);
                 });
