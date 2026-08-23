@@ -10,13 +10,13 @@
         .mood-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
-            margin-bottom: 30px;
+            gap: 10px;
+            margin-bottom: 15px;
         }
         .mood-btn {
             background: rgba(255, 255, 255, 0.85);
             border: 2px solid transparent;
-            padding: 20px 10px;
+            padding: 10px 5px;
             border-radius: 16px;
             text-align: center;
             cursor: pointer;
@@ -32,7 +32,7 @@
             background: rgba(216, 27, 96, 0.05);
         }
         .mood-emoji {
-            font-size: 32px;
+            font-size: 26px;
             margin-bottom: 8px;
         }
         .mood-label {
@@ -42,6 +42,7 @@
             color: var(--text-primary);
         }
         .history-card {
+            position: relative;
             background: rgba(255, 255, 255, 0.6);
             padding: 15px;
             border-radius: 12px;
@@ -66,6 +67,7 @@
             color: var(--text-secondary);
         }
     </style>
+    <script src="../theme.js"></script>
 </head>
 <body>
     <div id="main-screen" class="screen active">
@@ -96,6 +98,10 @@
                     <div class="mood-emoji">😤</div>
                     <div class="mood-label">Kesel</div>
                 </div>
+                <div class="mood-btn" onclick="openMoodModal('custom', '')" style="background: rgba(255, 255, 255, 0.4); border: 1px dashed rgba(136, 14, 79, 0.3); grid-column: 1 / -1;">
+                    <div class="mood-emoji">✨</div>
+                    <div class="mood-label">Lainnya</div>
+                </div>
             </div>
 
             <h3 style="font-size: 15px; margin-bottom: 15px; color: var(--text-primary); border-bottom: 2px solid rgba(136,14,79,0.1); padding-bottom: 8px;">Riwayat Mood Terbaru</h3>
@@ -111,6 +117,12 @@
             <div class="modal-header">
                 <h3 id="mood-modal-title">Ada cerita apa hari ini?</h3>
                 <button class="close-modal" onclick="closeModal('mood-modal')">&times;</button>
+            </div>
+            <div id="custom-mood-fields" style="display: none; margin-bottom: 10px;">
+                <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                    <input type="text" id="custom-emoji" placeholder="Emoji (misal: 🤯)" maxlength="4" style="width: 30%; padding: 10px; border: 1px solid rgba(0,0,0,0.1); border-radius: 8px; font-size: 14px; text-align: center;">
+                    <input type="text" id="custom-label" placeholder="Perasaan (misal: Pusing)" style="flex: 1; padding: 10px; border: 1px solid rgba(0,0,0,0.1); border-radius: 8px; font-size: 14px;">
+                </div>
             </div>
             <textarea id="mood-note" placeholder="Tulis catatan (opsional)..." rows="3"></textarea>
             <button id="save-mood-btn" style="width: 100%; padding: 12px; background: var(--accent); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 500; transition: 0.3s;">Simpan</button>
@@ -165,9 +177,10 @@
                     }
 
                     // Extract emoji from string (it contains emoji at the end)
-                    const label = data.mood || "Biasa aja";
-                    const emojiPart = label.slice(-2); // roughly gets the emoji
-                    const textPart = label.slice(0, -2);
+                    const label = data.mood || "Biasa aja ✨";
+                    const parts = label.split(' ');
+                    const emojiPart = parts.length > 1 ? parts.pop() : '✨';
+                    const textPart = parts.join(' ');
                     
                     const noteHtml = data.note ? `<div style="font-size: 12px; color: #475569; margin-top: 4px; font-style: italic;">"${data.note.replace(/</g, "&lt;").replace(/>/g, "&gt;")}"</div>` : "";
                     
@@ -189,10 +202,23 @@
 
         let currentMoodCode = '';
         let currentMoodLabel = '';
-
         window.openMoodModal = function(code, label) {
             currentMoodCode = code;
             currentMoodLabel = label;
+            
+            const customFields = document.getElementById('custom-mood-fields');
+            const title = document.getElementById('mood-modal-title');
+            
+            if (code === 'custom') {
+                title.textContent = 'Buat Mood Sendiri ✨';
+                customFields.style.display = 'block';
+                document.getElementById('custom-emoji').value = '';
+                document.getElementById('custom-label').value = '';
+            } else {
+                title.textContent = 'Ada cerita apa hari ini?';
+                customFields.style.display = 'none';
+            }
+            
             document.getElementById('mood-modal').style.display = 'flex';
         }
 
@@ -202,6 +228,14 @@
 
         document.getElementById('save-mood-btn').addEventListener('click', async function() {
             const btn = this;
+            
+            let finalLabel = currentMoodLabel;
+            if (currentMoodCode === 'custom') {
+                const cEmoji = document.getElementById('custom-emoji').value.trim() || '✨';
+                const cLabel = document.getElementById('custom-label').value.trim() || 'Biasa aja';
+                finalLabel = `${cLabel} ${cEmoji}`;
+            }
+            
             btn.innerText = "Menyimpan...";
             btn.style.background = "#2b8a3e";
             
@@ -209,8 +243,9 @@
                 const noteEl = document.getElementById('mood-note');
                 const noteVal = noteEl ? noteEl.value.trim() : "";
                 const today = new Date().toISOString().split('T')[0];
+                
                 await addDoc(collection(db, "moods"), {
-                    mood: currentMoodLabel,
+                    mood: finalLabel,
                     enteredName: savedName,
                     note: noteVal,
                     date: today,

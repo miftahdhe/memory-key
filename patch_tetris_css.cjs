@@ -1,4 +1,6 @@
+const fs = require('fs');
 
+const css = `
 .tetris-container {
     display: flex;
     justify-content: center;
@@ -107,3 +109,6 @@
     50% { transform: translate(-50%, -50%) scale(1.05); opacity: 1; }
     100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
 }
+`;
+
+fs.writeFileSync('pages/tetris.css', css);

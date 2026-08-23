@@ -6,6 +6,7 @@
     <title>Memory Key - Tetris</title>
     <link rel="stylesheet" href="../style.css">
     <link rel="stylesheet" href="tetris.css">
+    <script src="../theme.js"></script>
 </head>
 <body>
     <div id="tetris-overlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #fce4ec; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #880e4f; font-family: 'Playfair Display', serif; cursor: pointer; text-align: center; padding: 2rem;">
@@ -13,13 +14,15 @@
         <p style="font-size: 1.5rem; font-weight: 700;">Ketuk</p>
     </div>
     <div class="screen active">
+        <div class="bg-orb orb-1" style="z-index: -1;"></div>
+        <div class="bg-orb orb-2" style="z-index: -1;"></div>
         <div class="dashboard" style="max-width: 500px; position: relative;">
             <button class="back-btn" onclick="window.location.href='game.html'">← Kembali</button>
             <h2 class="dashboard-title" style="font-size: 2rem;">Tetris</h2>
             <div class="dashboard-divider" style="margin-bottom: 1rem;"></div>
             
             <div class="game-header">
-                <span>Skor: <span id="score" style="font-weight: 700; color: var(--accent);">0</span></span>
+                <span class="score-display">Skor: <span id="score">0</span></span>
                 <button class="restart-btn" onclick="tetrisStart()">Ulangi</button>
             </div>
 

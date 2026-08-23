@@ -233,10 +233,102 @@
         .close-lightbox:hover {
             background: rgba(255,255,255,0.4);
         }
+    
+        /* Read Modal */
+        #admin-read-modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.7);
+            backdrop-filter: blur(4px);
+            z-index: 10000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        #admin-read-modal.active {
+            display: flex;
+        }
+        .admin-read-content {
+            background: #fff;
+            width: 100%;
+            max-width: 500px;
+            max-height: 80vh;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .admin-read-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid #f1f5f9;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #f8fafc;
+        }
+        .admin-read-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1e293b;
+            margin: 0;
+            font-family: 'Inter', sans-serif;
+        }
+        .close-read-modal {
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: #64748b;
+            cursor: pointer;
+            line-height: 1;
+        }
+        .admin-read-body {
+            padding: 20px;
+            overflow-y: auto;
+            font-size: 14px;
+            line-height: 1.6;
+            color: #334155;
+            font-family: 'Inter', sans-serif;
+            white-space: pre-wrap;
+        }
+
+    
+        @keyframes modalFadeIn {
+            from { opacity: 0; transform: scale(0.95) translateY(10px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        .admin-read-content {
+            animation: modalFadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        @keyframes backdropFade {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        #admin-read-modal.active {
+            display: flex;
+            animation: backdropFade 0.2s ease-out forwards;
+        }
+
     </style>
+    <script src="../theme.js"></script>
 </head>
 <body>
     
+    
+    <!-- Read Text Modal -->
+    <div id="admin-read-modal" onclick="closeAdminReadModal(event)">
+        <div class="admin-read-content" onclick="event.stopPropagation()">
+            <div class="admin-read-header">
+                <h3 class="admin-read-title" id="admin-read-title">Isi Catatan</h3>
+                <button class="close-read-modal" onclick="closeAdminReadModal()">×</button>
+            </div>
+            <div class="admin-read-body" id="admin-read-body">
+                <!-- Text goes here -->
+            </div>
+        </div>
+    </div>
+
     <!-- Lightbox Modal -->
     <div id="admin-lightbox" onclick="closeAdminLightbox()">
         <button class="close-lightbox" onclick="closeAdminLightbox()">×</button>
@@ -675,12 +767,21 @@
                         timeStr = date.toLocaleString('id-ID');
                     }
 
-                    const safeText = data.text ? data.text.replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, "<br>") : "-";
+                    
+                    let safeText = data.text ? data.text.replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, "<br>") : "-";
+                    let displayText = safeText;
+                    if (data.text && data.text.length > 80) {
+                        let plainTruncated = data.text.substring(0, 80) + '...';
+                        let safeTruncated = plainTruncated.replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, " ");
+                        let encodedFullText = encodeURIComponent(safeText);
+                        displayText = safeTruncated + `<br><button onclick="openAdminReadModal('Catatan ${data.enteredName || ''}', '${encodedFullText}')" style="background: none; border: none; color: #3b82f6; padding: 4px 0; font-size: 12px; font-weight: 600; cursor: pointer; text-decoration: underline;">📖 Baca Selengkapnya</button>`;
+                    }
+
 
                     tr.innerHTML = `
                         <td data-label="Waktu">${timeStr}</td>
                         <td data-label="Nama"><strong>${data.enteredName || '-'}</strong></td>
-                        <td data-label="Isi Tulisan" style="font-size: 13px; font-family: 'Inter', sans-serif; line-height: 1.4;">${safeText}</td>
+                        <td data-label="Isi Tulisan" style="font-size: 13px; font-family: 'Inter', sans-serif; line-height: 1.4;">${displayText}</td>
                         <td data-label="Aksi"><button class="btn-hapus-note" data-id="${doc.id}" style="background: #ef4444; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: bold;">Hapus</button></td>
                     `;
                     tbody.appendChild(tr);
@@ -774,6 +875,18 @@
             document.getElementById('admin-lightbox').classList.remove('active');
         }
 
+        window.openAdminReadModal = function(title, encodedText) {
+            document.getElementById('admin-read-title').textContent = title;
+            document.getElementById('admin-read-body').innerHTML = decodeURIComponent(encodedText);
+            document.getElementById('admin-read-modal').classList.add('active');
+        };
+
+        window.closeAdminReadModal = function(e) {
+            if (e && e.target.id !== 'admin-read-modal' && e.target.className !== 'close-read-modal') return;
+            document.getElementById('admin-read-modal').classList.remove('active');
+        };
+
+
         async function fetchPhotos() {
             const privateBody = document.getElementById('private-photos-body');
             const deletedBody = document.getElementById('deleted-photos-body');
@@ -864,7 +977,16 @@
                         isUnlocked = now >= unlockDate;
                     }
                     
-                    const safeText = data.text ? data.text.replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, "<br>") : "-";
+                    
+                    let safeText = data.text ? data.text.replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, "<br>") : "-";
+                    let displayText = safeText;
+                    if (data.text && data.text.length > 80) {
+                        let plainTruncated = data.text.substring(0, 80) + '...';
+                        let safeTruncated = plainTruncated.replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, " ");
+                        let encodedFullText = encodeURIComponent(safeText);
+                        displayText = safeTruncated + `<br><button onclick="openAdminReadModal('Kapsul ${data.enteredName || ''}', '${encodedFullText}')" style="background: none; border: none; color: #3b82f6; padding: 4px 0; font-size: 12px; font-weight: 600; cursor: pointer; text-decoration: underline;">📖 Baca Selengkapnya</button>`;
+                    }
+
                     
                     let statusLabel = isUnlocked ? '<span style="color: #2e7d32; font-weight: bold;">(Terbuka)</span>' : '<span style="color: #c62828; font-weight: bold;">(Terkunci)</span>';
 
@@ -872,7 +994,7 @@
                         <td data-label="Waktu Dibuat">${timeStr}</td>
                         <td data-label="Nama"><strong>${data.enteredName || '-'}</strong></td>
                         <td data-label="Waktu Buka">${unlockStr} <br>${statusLabel}</td>
-                        <td data-label="Isi Pesan" style="font-size: 13px; font-family: 'Inter', sans-serif; line-height: 1.4;">${safeText}</td>
+                        <td data-label="Isi Pesan" style="font-size: 13px; font-family: 'Inter', sans-serif; line-height: 1.4;">${displayText}</td>
                     `;
                     tbody.appendChild(tr);
                 });

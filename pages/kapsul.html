@@ -72,6 +72,7 @@
             margin-bottom: 5px;
         }
     </style>
+    <script src="../theme.js"></script>
 </head>
 <body>
     <div id="main-screen" class="screen active">
@@ -98,6 +99,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h3>Tanam Kapsul Waktu</h3>
+                <div id="capsule-date-display" style="font-size: 11px; color: var(--text-secondary); margin-bottom: 10px; font-weight: 500;"></div>
                 <button class="close-modal" onclick="closeModal('add-modal')">&times;</button>
             </div>
             <textarea id="capsule-text" placeholder="Tulis pesan rahasiamu di sini..." rows="4"></textarea>
@@ -127,6 +129,8 @@
         const savedName = sessionStorage.getItem('enteredName') || "Unknown";
 
         window.openAddModal = function() {
+            const now = new Date();
+            document.getElementById('capsule-date-display').innerText = now.toLocaleString('id-ID', {day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute:'2-digit'});
             document.getElementById('add-modal').style.display = 'flex';
         }
 

@@ -1,19 +1,7 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Memory Key - Pilihan Game</title>
-    <link rel="stylesheet" href="../style.css">
-    <script src="../theme.js"></script>
-</head>
-<body>
-    <div class="screen active">
-        <div class="dashboard">
-            <button class="back-btn" onclick="window.location.href='../index.html'">← Kembali</button>
-            <h2 class="dashboard-title">Daftar Game</h2>
-            <div class="dashboard-divider"></div>
-            
+const fs = require('fs');
+let html = fs.readFileSync('pages/game.html', 'utf8');
+
+const newGridHtml = `
             <div class="menu-grid" style="grid-template-columns: 1fr; gap: 20px;">
                 <button class="menu-card" onclick="window.location.href='memory.html'">
                     <div class="menu-card-content" style="flex-direction: row; justify-content: flex-start; padding: 0 10px;">
@@ -34,7 +22,8 @@
                     </div>
                 </button>
             </div>
-        </div>
-    </div>
-</body>
-</html>
+`;
+
+html = html.replace(/<div class="menu-container">[\s\S]*?<\/div>\s*<\/div>/, newGridHtml.trim() + '\n        </div>');
+
+fs.writeFileSync('pages/game.html', html);

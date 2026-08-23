@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="../style.css">
     <link rel="stylesheet" href="galeri.css">
     <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <script src="../theme.js"></script>
 </head>
 <body>
     <div id="galeri-overlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #fce4ec; z-index: 9999; display: flex; align-items: center; justify-content: center; color: #880e4f; font-family: 'Playfair Display', serif; font-size: 1.5rem; cursor: pointer;">
@@ -87,7 +88,8 @@
     <!-- Caption Modal -->
     <div id="caption-modal" class="lightbox" style="z-index: 10001; opacity: 1; pointer-events: auto; display: none;">
         <div style="background: white; padding: 20px; border-radius: 12px; max-width: 300px; width: 90%; text-align: center; font-family: 'Inter', sans-serif;">
-            <h3 style="margin-bottom: 15px; color: var(--text-primary);">Tulis Caption Buat Foto Ini</h3>
+            <h3 style="margin-bottom: 5px; color: var(--text-primary);">Tulis Caption Buat Foto Ini</h3>
+            <div id="caption-date-display" style="font-size: 11px; color: var(--text-secondary); margin-bottom: 15px; font-weight: 500;"></div>
             <input type="text" id="caption-input" placeholder="Contoh: Ini waktu kita ke Bandung! ✨" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #ccc; margin-bottom: 15px; box-sizing: border-box; font-family: 'Caveat', cursive; font-size: 1.2rem;">
             <div style="display: flex; gap: 10px;">
                 <button onclick="cancelCaption()" style="flex: 1; padding: 10px; background: transparent; color: var(--text-secondary); border: 1px solid #ccc; border-radius: 8px; font-weight: 600; cursor: pointer;">Batal</button>
@@ -174,6 +176,9 @@
 
             // Show caption modal
             document.getElementById('caption-input').value = '';
+            const now = new Date();
+            const dateStr = now.toLocaleString('id-ID', {day: 'numeric', month: 'long', year: 'numeric'});
+            document.getElementById('caption-date-display').innerText = dateStr;
             document.getElementById('caption-modal').style.display = 'flex';
         }
 
@@ -277,7 +282,14 @@
 
                 // User photos
                 userPhotos.forEach((photo, i) => {
-                    const caption = photo.caption ? photo.caption : `Upload oleh ${photo.enteredName}`;
+                    
+                    let timeStr = "";
+                    if (photo.timestamp) {
+                        const date = photo.timestamp.toDate ? photo.timestamp.toDate() : new Date(photo.timestamp);
+                        timeStr = `<div style="font-size: 9px; color: #888; font-family: 'Inter', sans-serif; margin-top: 2px;">${date.toLocaleString('id-ID', {day: 'numeric', month: 'short', year: 'numeric'})}</div>`;
+                    }
+                    const caption = photo.caption ? photo.caption : (photo.isPrivate ? `Rahasia ${i+1}` : `Upload oleh ${photo.enteredName}`);
+
                     allLightboxImages.push({ src: photo.imageData, caption: caption });
                     const index = allLightboxImages.length - 1;
                     
@@ -288,7 +300,9 @@
                     <div class="polaroid" onclick="openLightbox(${index})">
                         ${deleteBtn}
                         <img src="${photo.imageData}" loading="lazy" alt="User Photo">
-                        <div class="polaroid-caption">${caption}</div>
+                        <div class="polaroid-caption">${caption}
+                        ${timeStr}
+                        </div>
                     </div>`;
                 });
 
@@ -323,7 +337,14 @@
                 }
 
                 userPhotos.forEach((photo, i) => {
-                    const caption = photo.caption ? photo.caption : `Rahasia ${i+1}`;
+                    
+                    let timeStr = "";
+                    if (photo.timestamp) {
+                        const date = photo.timestamp.toDate ? photo.timestamp.toDate() : new Date(photo.timestamp);
+                        timeStr = `<div style="font-size: 9px; color: #888; font-family: 'Inter', sans-serif; margin-top: 2px;">${date.toLocaleString('id-ID', {day: 'numeric', month: 'short', year: 'numeric'})}</div>`;
+                    }
+                    const caption = photo.caption ? photo.caption : (photo.isPrivate ? `Rahasia ${i+1}` : `Upload oleh ${photo.enteredName}`);
+
                     allLightboxImages.push({ src: photo.imageData, caption: caption });
                     const index = allLightboxImages.length - 1;
                     
@@ -331,7 +352,9 @@
                     <div class="polaroid" onclick="openLightbox(${index})">
                         <button class="polaroid-delete" onclick="deletePhoto(event, '${photo.id}', true)">×</button>
                         <img src="${photo.imageData}" loading="lazy" alt="Private Photo">
-                        <div class="polaroid-caption">${caption}</div>
+                        <div class="polaroid-caption">${caption}
+                        ${timeStr}
+                        </div>
                     </div>`;
                 });
 

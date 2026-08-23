@@ -67,6 +67,7 @@
             margin-top: 4px;
         }
     </style>
+    <script src="../theme.js"></script>
 </head>
 <body>
     <div id="main-screen" class="screen active">
@@ -91,6 +92,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h3>Tambah Wishlist Baru</h3>
+                <div id="wish-date-display" style="font-size: 11px; color: var(--text-secondary); margin-bottom: 10px; font-weight: 500;"></div>
                 <button class="close-modal" onclick="closeModal('add-modal')">&times;</button>
             </div>
             <textarea id="wish-text" placeholder="Misal: Nonton film horor bareng, atau makan sushi di tempat baru..." rows="3"></textarea>
@@ -116,6 +118,8 @@
         const savedName = sessionStorage.getItem('enteredName') || "Unknown";
 
         window.openAddModal = function() {
+            const now = new Date();
+            document.getElementById('wish-date-display').innerText = now.toLocaleString('id-ID', {day: 'numeric', month: 'long', year: 'numeric'});
             document.getElementById('add-modal').style.display = 'flex';
         }
 

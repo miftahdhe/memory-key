@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Memory Key</title>
     <link rel="stylesheet" href="style.css">
+    <script src="theme.js"></script>
 </head>
 <body>
     <div id="name-screen" class="screen active">
@@ -56,58 +57,86 @@
     </div>
 
     <div id="main-screen" class="screen">
-        <div class="dashboard">
-            <h2 class="dashboard-title">Memory Key</h2>
-            <p class="dashboard-greeting">TO HERNES</p>
-            <div class="dashboard-divider"></div>
 
-            <div class="menu-container">
-                <button class="menu-btn" onclick="openMenu('diary')">
-                    <div class="menu-btn-content">
-                        <span class="icon" style="margin-right: 12px;">✒️</span>
-                        <span class="menu-btn-title">Diary</span>
+        <div class="theme-picker">
+            <button class="theme-picker-btn" onclick="toggleThemeMenu(event)">
+                <span class="icon">✨</span> Tema
+            </button>
+            <div class="theme-menu" id="theme-menu">
+                <div class="theme-option" onclick="selectTheme('default', event)">
+                    <div class="theme-color-circle" style="background: #fce4ec;"></div> Rose
+                </div>
+                <div class="theme-option" onclick="selectTheme('ocean', event)">
+                    <div class="theme-color-circle" style="background: #e0f7fa;"></div> Ocean
+                </div>
+                <div class="theme-option" onclick="selectTheme('midnight', event)">
+                    <div class="theme-color-circle" style="background: #121212;"></div> Midnight
+                </div>
+                <div class="theme-option" onclick="selectTheme('forest', event)">
+                    <div class="theme-color-circle" style="background: #e8f5e9;"></div> Forest
+                </div>
+                <div class="theme-option" onclick="selectTheme('coffee', event)">
+                    <div class="theme-color-circle" style="background: #efebe9;"></div> Coffee
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-orb orb-1"></div>
+        <div class="bg-orb orb-2"></div>
+        <div class="dashboard">
+            <div style="text-align: center; margin-bottom: 25px;">
+                <h2 class="dashboard-title">Memory Key</h2>
+                <p class="dashboard-greeting">A Private Space For Hernes</p>
+                <div class="dashboard-divider"></div>
+            </div>
+
+            <div class="menu-grid">
+                <button class="menu-card" onclick="openMenu('diary')">
+                    <div class="menu-card-content">
+                        <div class="icon-wrapper"><span class="icon">✒️</span></div>
+                        <span class="menu-card-title">Diary</span>
                     </div>
                 </button>
-                <button class="menu-btn" onclick="openMenu('galeri')">
-                    <div class="menu-btn-content">
-                        <span class="icon" style="margin-right: 12px;">📸</span>
-                        <span class="menu-btn-title">Galeri</span>
+                <button class="menu-card" onclick="openMenu('galeri')">
+                    <div class="menu-card-content">
+                        <div class="icon-wrapper"><span class="icon">📸</span></div>
+                        <span class="menu-card-title">Galeri</span>
                     </div>
                 </button>
-                <button class="menu-btn" onclick="openMenu('catatan')">
-                    <div class="menu-btn-content">
-                        <span class="icon" style="margin-right: 12px;">📓</span>
-                        <span class="menu-btn-title">Catatan</span>
+                <button class="menu-card" onclick="openMenu('catatan')">
+                    <div class="menu-card-content">
+                        <div class="icon-wrapper"><span class="icon">📓</span></div>
+                        <span class="menu-card-title">Catatan</span>
                     </div>
                 </button>
-                <button class="menu-btn" onclick="openMenu('game')">
-                    <div class="menu-btn-content">
-                        <span class="icon" style="margin-right: 12px;">🎮</span>
-                        <span class="menu-btn-title">Game</span>
+                <button class="menu-card" onclick="openMenu('kapsul')">
+                    <div class="menu-card-content">
+                        <div class="icon-wrapper"><span class="icon">⏳</span></div>
+                        <span class="menu-card-title">Kapsul Waktu</span>
                     </div>
                 </button>
-                <button class="menu-btn" onclick="openMenu('kapsul')">
-                    <div class="menu-btn-content">
-                        <span class="icon" style="margin-right: 12px;">⏳</span>
-                        <span class="menu-btn-title">Kapsul Waktu</span>
+                <button class="menu-card" onclick="openMenu('wishlist')">
+                    <div class="menu-card-content">
+                        <div class="icon-wrapper"><span class="icon">📌</span></div>
+                        <span class="menu-card-title">Wishlist</span>
                     </div>
                 </button>
-                <button class="menu-btn" onclick="openMenu('wishlist')">
-                    <div class="menu-btn-content">
-                        <span class="icon" style="margin-right: 12px;">📌</span>
-                        <span class="menu-btn-title">Wishlist</span>
+                <button class="menu-card" onclick="openMenu('mood')">
+                    <div class="menu-card-content">
+                        <div class="icon-wrapper"><span class="icon">🎭</span></div>
+                        <span class="menu-card-title">Mood Tracker</span>
                     </div>
                 </button>
-                <button class="menu-btn" onclick="openMenu('mood')">
-                    <div class="menu-btn-content">
-                        <span class="icon" style="margin-right: 12px;">🎭</span>
-                        <span class="menu-btn-title">Mood Tracker</span>
+                <button class="menu-card" onclick="openMenu('game')">
+                    <div class="menu-card-content">
+                        <div class="icon-wrapper"><span class="icon">🎮</span></div>
+                        <span class="menu-card-title">Game</span>
                     </div>
                 </button>
-                <button class="menu-btn" onclick="logoutApp()" style="background: rgba(211, 47, 47, 0.1); border-color: rgba(211, 47, 47, 0.3);">
-                    <div class="menu-btn-content">
-                        <span class="icon" style="margin-right: 12px;">🚪</span>
-                        <span class="menu-btn-title" style="color: #d32f2f;">Keluar</span>
+                <button class="menu-card logout-card" onclick="logoutApp()">
+                    <div class="menu-card-content">
+                        <div class="icon-wrapper"><span class="icon">🚪</span></div>
+                        <span class="menu-card-title">Keluar</span>
                     </div>
                 </button>
             </div>
