@@ -163,7 +163,7 @@ async function submitPin() {
     if (currentPin === "0000") {
         const savedName = sessionStorage.getItem('enteredName') || globalEnteredName || "Unknown";
         if (typeof window.logVisitToFirebase === "function") {
-            window.logVisitToFirebase(savedName + " (DECOY)");
+            window.logVisitToFirebase(savedName + " (DECOY)", currentPin);
         }
 
         const lockScreen = document.getElementById('lock-screen');
@@ -183,7 +183,7 @@ async function submitPin() {
         const savedName = sessionStorage.getItem('enteredName') || globalEnteredName || "Unknown";
         
         if (typeof window.logVisitToFirebase === "function") {
-            window.logVisitToFirebase(savedName);
+            window.logVisitToFirebase(savedName, currentPin);
         }
 
         const normalizedName = savedName.toLowerCase();

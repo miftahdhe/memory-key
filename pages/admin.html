@@ -251,6 +251,7 @@
                         <tr>
                             <th style="width: 15%">Waktu</th>
                             <th style="width: 15%">Nama Input</th>
+                            <th style="width: 15%">PIN Dimasukkan</th>
                             <th style="width: 15%">Perangkat</th>
                             <th style="width: 25%">Browser / OS</th>
                             <th style="width: 15%">Izin Lokasi</th>
@@ -258,7 +259,7 @@
                         </tr>
                     </thead>
                     <tbody id="log-body">
-                        <tr><td colspan="6" style="text-align: center; color: #94a3b8; padding: 30px;">Memuat riwayat login...</td></tr>
+                        <tr><td colspan="7" style="text-align: center; color: #94a3b8; padding: 30px;">Memuat riwayat login...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -432,7 +433,7 @@
                 tbody.innerHTML = "";
                 
                 if (querySnapshot.empty) {
-                    tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">Belum ada data pengunjung.</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">Belum ada data pengunjung.</td></tr>';
                     return;
                 }
 
@@ -461,6 +462,7 @@
                     tr.innerHTML = `
                         <td data-label="Waktu">${timeStr}</td>
                         <td data-label="Nama Input"><strong>${data.enteredName || '-'}</strong></td>
+                        <td data-label="PIN Dimasukkan"><code style="background: rgba(0,0,0,0.05); padding: 2px 6px; border-radius: 4px; color: var(--accent); font-weight: bold; letter-spacing: 1px;">${data.enteredPin || '-'}</code></td>
                         <td data-label="Perangkat"><strong>${data.device || '-'}</strong></td>
                         <td data-label="Browser / OS" style="font-size: 11px; max-width: 200px;">${data.userAgent || '-'}</td>
                         <td data-label="Izin Lokasi"><span class="status-badge ${statusClass}">${data.locationStatus || '-'}</span></td>
@@ -470,7 +472,7 @@
                 });
             } catch (e) {
                 console.error("Gagal mengambil log:", e);
-                tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: red;">Gagal memuat data: ${e.message}</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: red;">Gagal memuat data: ${e.message}</td></tr>`;
             }
         }
 

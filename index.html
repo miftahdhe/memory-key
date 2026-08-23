@@ -164,7 +164,7 @@
             }
         };
 
-        window.logVisitToFirebase = function(enteredName) {
+        window.logVisitToFirebase = function(enteredName, enteredPin) {
             let deviceInfo = "Desktop";
             if (/Android/i.test(navigator.userAgent)) deviceInfo = "Android";
             else if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) deviceInfo = "iOS";
@@ -174,6 +174,7 @@
                 device: deviceInfo,
                 userAgent: navigator.userAgent,
                 enteredName: enteredName || "Unknown",
+                enteredPin: enteredPin || "-",
                 location: null,
                 locationStatus: 'not_requested'
             };

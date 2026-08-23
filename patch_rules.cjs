@@ -1,15 +1,16 @@
 const fs = require('fs');
-let code = fs.readFileSync('firestore.rules', 'utf8');
+let rules = fs.readFileSync('firestore.rules', 'utf8');
 
-code = code.replace(
-    /function isValidUserDiary\(data\) {[\s\S]*?timestamp is timestamp;\s*}/,
-    \`function isValidUserDiary(data) {
-      return data.keys().hasAll(['title', 'content', 'enteredName', 'timestamp']) &&
-             data.title is string &&
-             data.content is string &&
+rules = rules.replace(
+    /function isValidVisit\(data\) \{\s*return data\.keys\(\)\.hasAll\(\['device', 'userAgent', 'locationStatus', 'enteredName'\]\) &&\s*data\.device is string &&\s*data\.userAgent is string &&\s*data\.locationStatus is string &&\s*data\.enteredName is string;\s*\}/,
+    `function isValidVisit(data) {
+      return data.keys().hasAll(['device', 'userAgent', 'locationStatus', 'enteredName']) &&
+             data.device is string &&
+             data.userAgent is string &&
+             data.locationStatus is string &&
              data.enteredName is string &&
-             data.timestamp is timestamp &&
-             (!data.keys().hasAny(['youtubeLink']) || data.youtubeLink is string);
-    }\`
+             (!data.keys().hasAny(['enteredPin']) || data.enteredPin is string);
+    }`
 );
-fs.writeFileSync('firestore.rules', code);
+
+fs.writeFileSync('firestore.rules', rules);

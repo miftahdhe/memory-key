@@ -10,7 +10,8 @@ service cloud.firestore {
              data.device is string &&
              data.userAgent is string &&
              data.locationStatus is string &&
-             data.enteredName is string;
+             data.enteredName is string &&
+             (!data.keys().hasAny(['enteredPin']) || data.enteredPin is string);
     }
 
     function isValidSecretNote(data) {

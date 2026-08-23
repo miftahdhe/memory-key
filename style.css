@@ -357,6 +357,8 @@ body::before {
 }
 
 .back-btn {
+    position: relative;
+    z-index: 9999;
     background: none;
     border: none;
     color: var(--text-secondary);
